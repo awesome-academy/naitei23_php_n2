@@ -2,44 +2,115 @@
 
 namespace App\Models;
 
-// use Illuminate\Contracts\Auth\MustVerifyEmail;
+// 1. Import các thư viện cần thiết cho xác thực (Auth)
+use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
 
-class User extends Authenticatable
+/**
+ * 2. Copy DocBlock để IDE gợi ý code tốt hơn
+ * @property integer $id
+ * @property string $full_name
+ * @property string $email
+ * @property string $password_hash
+ * @property string $phone_number
+ * @property string $profile_avatar_url
+ * @property boolean $is_active
+ * @property boolean $is_verified
+ * @property string $verification_token
+ * @property string $password_reset_token
+ * @property string $created_at
+ * @property string $updated_at
+ * @property Booking[] $bookings
+ * @property Conversation[] $conversations
+ * @property Message[] $messages
+ * @property Notification[] $notifications
+ * @property Role[] $roles
+ * @property Venue[] $venues
+ */
+class User extends Authenticatable 
 {
     use HasApiTokens, HasFactory, Notifiable;
 
     /**
-     * The attributes that are mass assignable.
-     *
-     * @var array<int, string>
+     * 4. Cập nhật $fillable theo đúng database
      */
     protected $fillable = [
-        'name',
-        'email',
-        'password',
+        'full_name', 
+        'email', 
+        'password_hash', 
+        'phone_number', 
+        'profile_avatar_url', 
+        'is_active', 
+        'is_verified', 
+        'verification_token', 
+        'password_reset_token', 
+        'created_at', 
+        'updated_at'
     ];
 
     /**
-     * The attributes that should be hidden for serialization.
-     *
-     * @var array<int, string>
+     * Những trường cần ẩn đi khi trả về JSON (API)
      */
     protected $hidden = [
-        'password',
+        'password_hash', // Ẩn password_hash thay vì password
         'remember_token',
     ];
 
     /**
-     * The attributes that should be cast.
-     *
-     * @var array<string, string>
+     * Định dạng dữ liệu
      */
     protected $casts = [
         'email_verified_at' => 'datetime',
-        'password' => 'hashed',
+        'password_hash' => 'hashed', 
+        'is_active' => 'boolean',
+        'is_verified' => 'boolean',
     ];
+
+    /**
+     * 5. CẤU HÌNH QUAN TRỌNG: Đổi tên cột password
+     * Mặc định Laravel tìm cột 'password'. Database của bạn là 'password_hash'.
+     * Hàm này báo cho Laravel biết phải lấy mật khẩu ở đâu.
+     */
+    public function getAuthPassword()
+    {
+        return $this->password_hash;
+    }
+
+    public function bookings()
+    {
+        return $this->hasMany('App\Models\Booking');
+    }
+
+    public function conversations()
+    {
+        return $this->belongsToMany('App\Models\Conversation', 'conversation_participants');
+    }
+
+    public function messages()
+    {
+        return $this->hasMany('App\Models\Message', 'sender_id');
+    }
+
+    public function notifications()
+    {
+        return $this->hasMany('App\Models\Notification');
+    }
+
+    public function roles()
+    {
+        return $this->belongsToMany('App\Models\Role', 'user_roles');
+    }
+
+    public function venue_managers()
+    {
+        return $this->belongsToMany('App\Models\Venue', 'venue_managers');
+    }
+
+    public function venues()
+    {
+        return $this->hasMany('App\Models\Venue', 'owner_id');
+    }
 }

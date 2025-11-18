@@ -1,12 +1,12 @@
 
-# 🏢 Workspace Booking System (Project Naitei23 PHP N2)
+# Workspace Booking System (Project Naitei23 PHP N2)
 
 Đây là source code cho dự án đặt phòng làm việc (Workspace Booking)
 Hướng dẫn để cài đặt môi trường sau khi Clone code về.
 
 ---
 
-## 🚀 Quy trình
+## Quy trình
 
 Sau khi `git clone` dự án về, hãy mở Terminal tại thư mục dự án và chạy lần lượt các bước sau:
 

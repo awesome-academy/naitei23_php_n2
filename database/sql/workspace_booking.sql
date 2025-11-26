@@ -74,7 +74,8 @@ CREATE TABLE venues (
 
     INDEX idx_venues_owner (owner_id),
     INDEX idx_venues_city (city),
-    INDEX idx_venues_status (status)
+    INDEX idx_venues_status (status),
+    INDEX idx_venues_city_status (city, status) -- Composite index cho filter kết hợp
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE venue_managers (
@@ -230,7 +231,9 @@ CREATE TABLE payments (
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
 
     CONSTRAINT fk_payments_booking
-        FOREIGN KEY (booking_id) REFERENCES bookings(id) ON DELETE CASCADE
+        FOREIGN KEY (booking_id) REFERENCES bookings(id) ON DELETE CASCADE,
+
+    INDEX idx_payments_status (transaction_status) -- Filter payments theo trạng thái
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- =========================

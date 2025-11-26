@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 /**
  * @property integer $id
@@ -17,16 +18,26 @@ use Illuminate\Database\Eloquent\Model;
  */
 class Payment extends Model
 {
-    /**
-     * @var array
-     */
-    protected $fillable = ['booking_id', 'amount', 'payment_method', 'transaction_id', 'transaction_status', 'created_at', 'updated_at'];
+    public const STATUS_PENDING = 'pending';
+    public const STATUS_SUCCESS = 'success';
+    public const STATUS_FAILED  = 'failed';
 
-    /**
-     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
-     */
-    public function booking()
+    protected $fillable = [
+        'booking_id',
+        'amount',
+        'payment_method',
+        'transaction_id',
+        'transaction_status',
+    ];
+
+    protected $casts = [
+        'amount'      => 'decimal:2',
+        'created_at'  => 'datetime',
+        'updated_at'  => 'datetime',
+    ];
+
+    public function booking(): BelongsTo
     {
-        return $this->belongsTo('App\Models\Booking');
+        return $this->belongsTo(Booking::class);
     }
 }

@@ -55,62 +55,74 @@ class User extends Authenticatable
      * Những trường cần ẩn đi khi trả về JSON (API)
      */
     protected $hidden = [
-        'password_hash', // Ẩn password_hash thay vì password
+        'password_hash',
         'remember_token',
+        'verification_token',
+        'password_reset_token',
     ];
 
     /**
      * Định dạng dữ liệu
      */
     protected $casts = [
-        'email_verified_at' => 'datetime',
-        'password_hash' => 'hashed', 
-        'is_active' => 'boolean',
+        'is_active'   => 'boolean',
         'is_verified' => 'boolean',
+        'created_at'  => 'datetime',
+        'updated_at'  => 'datetime',
     ];
 
     /**
-     * 5. CẤU HÌNH QUAN TRỌNG: Đổi tên cột password
-     * Mặc định Laravel tìm cột 'password'. Database của bạn là 'password_hash'.
-     * Hàm này báo cho Laravel biết phải lấy mật khẩu ở đâu.
+     * Laravel mặc định dùng field 'password', nhưng DB đang dùng 'password_hash'.
      */
     public function getAuthPassword()
     {
         return $this->password_hash;
     }
 
+    /**
+     * Các booking mà user này đã tạo.
+     */
     public function bookings()
     {
-        return $this->hasMany('App\Models\Booking');
+        return $this->hasMany(Booking::class);
     }
 
     public function conversations()
     {
-        return $this->belongsToMany('App\Models\Conversation', 'conversation_participants');
+        return $this->belongsToMany(Conversation::class, 'conversation_participants');
     }
 
     public function messages()
     {
-        return $this->hasMany('App\Models\Message', 'sender_id');
+        return $this->hasMany(Message::class, 'sender_id');
     }
 
     public function notifications()
     {
-        return $this->hasMany('App\Models\Notification');
+        return $this->hasMany(Notification::class);
     }
 
+    /**
+     * Roles mà user đang có (admin, moderator, venue_owner, customer...).
+     */
     public function roles()
     {
-        return $this->belongsToMany('App\Models\Role', 'user_roles');
+        return $this->belongsToMany(Role::class, 'user_roles');
     }
 
-    public function venue_managers()
+    /**
+     * Các venue mà user này là manager (qua bảng venue_managers).
+     */
+    public function managedVenues()
     {
-        return $this->belongsToMany('App\Models\Venue', 'venue_managers');
+        return $this->belongsToMany(Venue::class, 'venue_managers');
     }
 
+    /**
+     * Các venue mà user này là owner.
+     */
     public function venues()
     {
-        return $this->hasMany('App\Models\Venue', 'owner_id');
+        return $this->hasMany(Venue::class, 'owner_id');
     }
 }

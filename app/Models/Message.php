@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 /**
  * @property integer $id
@@ -15,24 +16,28 @@ use Illuminate\Database\Eloquent\Model;
  */
 class Message extends Model
 {
-    /**
-     * @var array
-     */
-    protected $fillable = ['conversation_id', 'sender_id', 'message_body', 'created_at'];
+    protected $table = 'messages';
 
-    /**
-     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
-     */
-    public function conversation()
+    public $timestamps = false;
+
+    protected $fillable = [
+        'conversation_id',
+        'sender_id',
+        'message_body',
+        'created_at',
+    ];
+
+    protected $casts = [
+        'created_at' => 'datetime',
+    ];
+
+    public function conversation(): BelongsTo
     {
-        return $this->belongsTo('App\Models\Conversation');
+        return $this->belongsTo(Conversation::class);
     }
 
-    /**
-     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
-     */
-    public function user()
+    public function sender(): BelongsTo
     {
-        return $this->belongsTo('App\Models\User', 'sender_id');
+        return $this->belongsTo(User::class, 'sender_id');
     }
 }

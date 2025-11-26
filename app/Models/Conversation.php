@@ -3,6 +3,8 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 /**
  * @property integer $id
@@ -14,24 +16,17 @@ use Illuminate\Database\Eloquent\Model;
  */
 class Conversation extends Model
 {
-    /**
-     * @var array
-     */
-    protected $fillable = ['name', 'created_at', 'updated_at'];
+    protected $fillable = [
+        'name',
+    ];
 
-    /**
-     * @return \Illuminate\Database\Eloquent\Relations\BelongsToMany
-     */
-    public function users()
+    public function participants(): BelongsToMany
     {
-        return $this->belongsToMany('App\Models\User', 'conversation_participants');
+        return $this->belongsToMany(User::class, 'conversation_participants');
     }
 
-    /**
-     * @return \Illuminate\Database\Eloquent\Relations\HasMany
-     */
-    public function messages()
+    public function messages(): HasMany
     {
-        return $this->hasMany('App\Models\Message');
+        return $this->hasMany(Message::class);
     }
 }

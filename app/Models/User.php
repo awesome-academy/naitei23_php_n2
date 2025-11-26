@@ -30,7 +30,7 @@ use Laravel\Sanctum\HasApiTokens;
  * @property Role[] $roles
  * @property Venue[] $venues
  */
-class User extends Authenticatable 
+class User extends Authenticatable
 {
     use HasApiTokens, HasFactory, Notifiable;
 
@@ -38,16 +38,16 @@ class User extends Authenticatable
      * 4. Cập nhật $fillable theo đúng database
      */
     protected $fillable = [
-        'full_name', 
-        'email', 
-        'password_hash', 
-        'phone_number', 
-        'profile_avatar_url', 
-        'is_active', 
-        'is_verified', 
-        'verification_token', 
-        'password_reset_token', 
-        'created_at', 
+        'full_name',
+        'email',
+        'password_hash',
+        'phone_number',
+        'profile_avatar_url',
+        'is_active',
+        'is_verified',
+        'verification_token',
+        'password_reset_token',
+        'created_at',
         'updated_at'
     ];
 

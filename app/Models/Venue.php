@@ -3,6 +3,9 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 /**
  * @property integer $id
@@ -25,48 +28,50 @@ use Illuminate\Database\Eloquent\Model;
  */
 class Venue extends Model
 {
-    /**
-     * @var array
-     */
-    protected $fillable = ['owner_id', 'name', 'description', 'address', 'city', 'street', 'latitude', 'longitude', 'status', 'created_at', 'updated_at'];
+    public const STATUS_PENDING  = 'pending';
+    public const STATUS_APPROVED = 'approved';
+    public const STATUS_BLOCKED  = 'blocked';
 
-    /**
-     * @return \Illuminate\Database\Eloquent\Relations\HasMany
-     */
-    public function services()
+    protected $fillable = [
+        'owner_id',
+        'name',
+        'description',
+        'address',
+        'city',
+        'street',
+        'latitude',
+        'longitude',
+        'status',
+    ];
+
+    public function owner(): BelongsTo
     {
-        return $this->hasMany('App\Models\Service');
+        return $this->belongsTo(User::class, 'owner_id');
     }
 
-    /**
-     * @return \Illuminate\Database\Eloquent\Relations\HasMany
-     */
-    public function spaces()
+    // Giữ lại nếu ở chỗ khác đang dùng $venue->user
+    public function user(): BelongsTo
     {
-        return $this->hasMany('App\Models\Space');
+        return $this->belongsTo(User::class, 'owner_id');
     }
 
-    /**
-     * @return \Illuminate\Database\Eloquent\Relations\BelongsToMany
-     */
-    public function amenities()
+    public function services(): HasMany
     {
-        return $this->belongsToMany('App\Models\Amenity', 'venue_amenities');
+        return $this->hasMany(Service::class);
     }
 
-    /**
-     * @return \Illuminate\Database\Eloquent\Relations\BelongsToMany
-     */
-    public function users()
+    public function spaces(): HasMany
     {
-        return $this->belongsToMany('App\Models\User', 'venue_managers');
+        return $this->hasMany(Space::class);
     }
 
-    /**
-     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
-     */
-    public function user()
+    public function amenities(): BelongsToMany
     {
-        return $this->belongsTo('App\Models\User', 'owner_id');
+        return $this->belongsToMany(Amenity::class, 'venue_amenities');
+    }
+
+    public function managers(): BelongsToMany
+    {
+        return $this->belongsToMany(User::class, 'venue_managers');
     }
 }

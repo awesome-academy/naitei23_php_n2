@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 /**
  * @property integer $id
@@ -11,16 +12,14 @@ use Illuminate\Database\Eloquent\Model;
  */
 class SpaceType extends Model
 {
-    /**
-     * @var array
-     */
-    protected $fillable = ['type_name'];
+    public $timestamps = false;
 
-    /**
-     * @return \Illuminate\Database\Eloquent\Relations\HasMany
-     */
-    public function spaces()
+    protected $fillable = [
+        'type_name',
+    ];
+
+    public function spaces(): HasMany
     {
-        return $this->hasMany('App\Models\Space');
+        return $this->hasMany(Space::class);
     }
 }

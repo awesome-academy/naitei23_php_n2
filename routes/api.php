@@ -16,8 +16,9 @@ use App\Http\Controllers\Owner\VenueController;
 */
 
 // Owner routes - Venue CRUD
-// TODO: Uncomment auth:sanctum middleware when authentication is ready
-Route::prefix('owner')
+// TODO: Replace 'fake.auth' with 'auth:sanctum' when authentication is ready
+Route::middleware('fake.auth')
+    ->prefix('owner')
     ->group(function () {
         Route::get('venues', [VenueController::class, 'index']);
         Route::post('venues', [VenueController::class, 'store']);

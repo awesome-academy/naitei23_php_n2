@@ -6,19 +6,24 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Http\Requests\Owner\StoreVenueRequest;
 use App\Http\Requests\Owner\UpdateVenueRequest;
+use App\Http\Resources\VenueResource;
 use App\Models\Venue;
 
 class VenueController extends Controller
 {
     /**
      * GET /api/owner/venues
-     * Trả về list venue của chủ nhà (sau này).
+     * Trả về list venue của chủ nhà.
      */
-    public function index()
+    public function index(Request $request)
     {
-        return response()->json([
-            'message' => 'owner venues index (dummy)',
-        ]);
+        $user = $request->user();
+
+        $venues = Venue::where('owner_id', $user->id)
+            ->orderByDesc('created_at')
+            ->paginate(10);
+
+        return VenueResource::collection($venues);
     }
 
     /**
@@ -29,12 +34,20 @@ class VenueController extends Controller
     {
         $this->authorize('create', Venue::class);
         
+        $user = $request->user();
         $data = $request->validated();
 
-        return response()->json([
-            'message' => 'valid store venue request',
-            'data'    => $data,
-        ]);
+        // đảm bảo không bị FE phá owner_id / status
+        unset($data['owner_id'], $data['status']);
+
+        $data['owner_id'] = $user->id;
+        $data['status']   = Venue::STATUS_PENDING;
+
+        $venue = Venue::create($data);
+
+        return (new VenueResource($venue))
+            ->response()
+            ->setStatusCode(201);
     }
 
     /**
@@ -45,10 +58,9 @@ class VenueController extends Controller
     {
         $this->authorize('view', $venue);
         
-        return response()->json([
-            'message' => 'owner venues show (dummy)',
-            'venue'   => $venue,
-        ]);
+        $venue->load(['amenities', 'spaces']);
+
+        return new VenueResource($venue);
     }
 
     /**
@@ -61,11 +73,12 @@ class VenueController extends Controller
         
         $data = $request->validated();
 
-        return response()->json([
-            'message' => 'valid update venue request',
-            'venue'   => $venue,
-            'data'    => $data,
-        ]);
+        // bảo vệ owner_id & status
+        unset($data['owner_id'], $data['status']);
+
+        $venue->update($data);
+
+        return new VenueResource($venue);
     }
 
     /**
@@ -76,9 +89,10 @@ class VenueController extends Controller
     {
         $this->authorize('delete', $venue);
         
+        $venue->delete();
+
         return response()->json([
-            'message' => 'owner venues destroy (dummy)',
-            'venue'   => $venue,
+            'message' => 'Venue deleted successfully',
         ]);
     }
 }

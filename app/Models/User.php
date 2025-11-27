@@ -125,4 +125,14 @@ class User extends Authenticatable
     {
         return $this->hasMany(Venue::class, 'owner_id');
     }
+
+    /**
+     * Kiểm tra user có phải admin không.
+     */
+    public function isAdmin(): bool
+    {
+        return $this->roles()
+            ->where('role_name', 'admin')
+            ->exists();
+    }
 }

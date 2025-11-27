@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 /**
  * @property integer $venue_id
@@ -12,24 +13,24 @@ use Illuminate\Database\Eloquent\Model;
  */
 class VenueAmenity extends Model
 {
-    /**
-     * @var array
-     */
-    protected $fillable = [];
+    protected $table = 'venue_amenities';
 
-    /**
-     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
-     */
-    public function venue()
+    public $timestamps = false;
+
+    public $incrementing = false;
+
+    protected $fillable = [
+        'venue_id',
+        'amenity_id',
+    ];
+
+    public function venue(): BelongsTo
     {
-        return $this->belongsTo('App\Models\Venue');
+        return $this->belongsTo(Venue::class);
     }
 
-    /**
-     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
-     */
-    public function amenity()
+    public function amenity(): BelongsTo
     {
-        return $this->belongsTo('App\Models\Amenity');
+        return $this->belongsTo(Amenity::class);
     }
 }

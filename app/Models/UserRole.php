@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 /**
  * @property integer $user_id
@@ -12,24 +13,25 @@ use Illuminate\Database\Eloquent\Model;
  */
 class UserRole extends Model
 {
-    /**
-     * @var array
-     */
-    protected $fillable = [];
+    protected $table = 'user_roles';
 
-    /**
-     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
-     */
-    public function user()
+    public $timestamps = false;
+
+    // Bảng này dùng composite key (user_id, role_id), không auto-increment
+    public $incrementing = false;
+
+    protected $fillable = [
+        'user_id',
+        'role_id',
+    ];
+
+    public function user(): BelongsTo
     {
-        return $this->belongsTo('App\Models\User');
+        return $this->belongsTo(User::class);
     }
 
-    /**
-     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
-     */
-    public function role()
+    public function role(): BelongsTo
     {
-        return $this->belongsTo('App\Models\Role');
+        return $this->belongsTo(Role::class);
     }
 }

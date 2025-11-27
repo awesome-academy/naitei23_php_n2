@@ -3,6 +3,8 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 /**
  * @property integer $id
@@ -23,32 +25,30 @@ use Illuminate\Database\Eloquent\Model;
  */
 class Space extends Model
 {
-    /**
-     * @var array
-     */
-    protected $fillable = ['venue_id', 'space_type_id', 'name', 'capacity', 'price_per_hour', 'price_per_day', 'price_per_month', 'open_hour', 'close_hour', 'created_at', 'updated_at'];
+    protected $fillable = [
+        'venue_id',
+        'space_type_id',
+        'name',
+        'capacity',
+        'price_per_hour',
+        'price_per_day',
+        'price_per_month',
+        'open_hour',
+        'close_hour',
+    ];
 
-    /**
-     * @return \Illuminate\Database\Eloquent\Relations\HasMany
-     */
-    public function bookings()
+    public function venue(): BelongsTo
     {
-        return $this->hasMany('App\Models\Booking');
+        return $this->belongsTo(Venue::class);
     }
 
-    /**
-     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
-     */
-    public function venue()
+    public function spaceType(): BelongsTo
     {
-        return $this->belongsTo('App\Models\Venue');
+        return $this->belongsTo(SpaceType::class);
     }
 
-    /**
-     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
-     */
-    public function spaceType()
+    public function bookings(): HasMany
     {
-        return $this->belongsTo('App\Models\SpaceType');
+        return $this->hasMany(Booking::class);
     }
 }

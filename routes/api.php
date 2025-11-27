@@ -5,6 +5,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AmenityController;
 use App\Http\Controllers\Owner\VenueController;
 use App\Http\Controllers\Owner\VenueAmenityController;
+use App\Http\Controllers\Owner\ServiceController;
 
 /*
 |--------------------------------------------------------------------------
@@ -35,6 +36,12 @@ Route::middleware('fake.auth')
         // Venue Amenities
         Route::get('venues/{venue}/amenities', [VenueAmenityController::class, 'index']);
         Route::put('venues/{venue}/amenities', [VenueAmenityController::class, 'sync']);
+
+        // Venue Services
+        Route::get('venues/{venue}/services', [ServiceController::class, 'indexByVenue']);
+        Route::post('venues/{venue}/services', [ServiceController::class, 'store']);
+        Route::put('services/{service}', [ServiceController::class, 'update']);
+        Route::delete('services/{service}', [ServiceController::class, 'destroy']);
     });
 
 Route::middleware('auth:sanctum')->get('/user', function (Request $request) {

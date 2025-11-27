@@ -4,6 +4,8 @@ namespace App\Http\Controllers\Owner;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
+use App\Http\Requests\Owner\StoreVenueRequest;
+use App\Http\Requests\Owner\UpdateVenueRequest;
 // use App\Models\Venue; // sẽ dùng ở Task sau, giờ có thể comment tạm
 
 class VenueController extends Controller
@@ -21,13 +23,15 @@ class VenueController extends Controller
 
     /**
      * POST /api/owner/venues
-     * Tạo venue mới (sau này dùng StoreVenueRequest).
+     * Tạo venue mới.
      */
-    public function store(Request $request)
+    public function store(StoreVenueRequest $request)
     {
+        $data = $request->validated();
+
         return response()->json([
-            'message' => 'owner venues store (dummy)',
-            'input'   => $request->all(),
+            'message' => 'valid store venue request',
+            'data'    => $data,
         ]);
     }
 
@@ -47,12 +51,14 @@ class VenueController extends Controller
      * PUT /api/owner/venues/{venue}
      * Update venue.
      */
-    public function update(Request $request, $id)
+    public function update(UpdateVenueRequest $request, $id)
     {
+        $data = $request->validated();
+
         return response()->json([
-            'message' => 'owner venues update (dummy)',
+            'message' => 'valid update venue request',
             'id'      => $id,
-            'input'   => $request->all(),
+            'data'    => $data,
         ]);
     }
 

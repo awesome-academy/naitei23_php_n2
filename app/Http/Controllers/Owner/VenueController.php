@@ -33,7 +33,7 @@ class VenueController extends Controller
     public function store(StoreVenueRequest $request)
     {
         $this->authorize('create', Venue::class);
-        
+
         $user = $request->user();
         $data = $request->validated();
 
@@ -57,7 +57,7 @@ class VenueController extends Controller
     public function show(Venue $venue)
     {
         $this->authorize('view', $venue);
-        
+
         $venue->load(['amenities', 'spaces']);
 
         return new VenueResource($venue);
@@ -70,7 +70,7 @@ class VenueController extends Controller
     public function update(UpdateVenueRequest $request, Venue $venue)
     {
         $this->authorize('update', $venue);
-        
+
         $data = $request->validated();
 
         // bảo vệ owner_id & status
@@ -88,7 +88,7 @@ class VenueController extends Controller
     public function destroy(Venue $venue)
     {
         $this->authorize('delete', $venue);
-        
+
         $venue->delete();
 
         return response()->json([

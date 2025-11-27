@@ -6,6 +6,7 @@ use App\Http\Controllers\AmenityController;
 use App\Http\Controllers\Owner\VenueController;
 use App\Http\Controllers\Owner\VenueAmenityController;
 use App\Http\Controllers\Owner\ServiceController;
+use App\Http\Controllers\Owner\SpaceAmenityController;
 
 /*
 |--------------------------------------------------------------------------
@@ -42,6 +43,10 @@ Route::middleware('fake.auth')
         Route::post('venues/{venue}/services', [ServiceController::class, 'store']);
         Route::put('services/{service}', [ServiceController::class, 'update']);
         Route::delete('services/{service}', [ServiceController::class, 'destroy']);
+
+        // Space Amenities
+        Route::get('spaces/{space}/amenities', [SpaceAmenityController::class, 'index']);
+        Route::put('spaces/{space}/amenities', [SpaceAmenityController::class, 'sync']);
     });
 
 Route::middleware('auth:sanctum')->get('/user', function (Request $request) {

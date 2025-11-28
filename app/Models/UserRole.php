@@ -13,9 +13,19 @@ use Illuminate\Database\Eloquent\Model;
 class UserRole extends Model
 {
     /**
+     * Tên bảng
+     */
+    protected $table = 'user_roles';
+
+    /**
+     * Tắt timestamps vì bảng user_roles không có created_at và updated_at
+     */
+    public $timestamps = false;
+
+    /**
      * @var array
      */
-    protected $fillable = [];
+    protected $fillable = ['user_id', 'role_id'];
 
     /**
      * @return \Illuminate\Database\Eloquent\Relations\BelongsTo

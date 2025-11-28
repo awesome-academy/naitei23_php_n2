@@ -26,6 +26,8 @@ Route::prefix('auth')->group(function () {
     Route::post('/register', [AuthController::class, 'register']);  // Chỉ cho user đăng ký
     Route::post('/login', [AuthController::class, 'login']);        // Dùng chung cho tất cả roles
     Route::post('/forgot-password', [AuthController::class, 'forgotPassword']); // Reset password cho user
+    Route::get('/verify-email', [AuthController::class, 'verifyEmail']); // Xác thực email (click từ email)
+    Route::post('/resend-verification', [AuthController::class, 'resendVerification']); // Gửi lại email xác thực
 
     // Protected routes (cần đăng nhập)
     Route::middleware('auth:sanctum')->group(function () {

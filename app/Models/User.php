@@ -111,7 +111,15 @@ class User extends Authenticatable
     }
 
     /**
+<<<<<<< HEAD
+     * Các venue mà user này là manager (qua bảng venue_managers).
+     */
+    public function managedVenues()
+=======
      * Check if user has a specific role
+     *
+     * @param string $roleName
+     * @return bool
      */
     public function hasRole(string $roleName): bool
     {
@@ -120,6 +128,9 @@ class User extends Authenticatable
 
     /**
      * Check if user has any of the given roles
+     *
+     * @param array $roleNames
+     * @return bool
      */
     public function hasAnyRole(array $roleNames): bool
     {
@@ -128,6 +139,8 @@ class User extends Authenticatable
 
     /**
      * Check if user is admin
+     *
+     * @return bool
      */
     public function isAdmin(): bool
     {
@@ -136,6 +149,8 @@ class User extends Authenticatable
 
     /**
      * Check if user is moderator
+     *
+     * @return bool
      */
     public function isModerator(): bool
     {
@@ -144,6 +159,8 @@ class User extends Authenticatable
 
     /**
      * Check if user is regular user
+     *
+     * @return bool
      */
     public function isUser(): bool
     {
@@ -152,6 +169,9 @@ class User extends Authenticatable
 
     /**
      * Assign a role to user
+     *
+     * @param string $roleName
+     * @return void
      */
     public function assignRole(string $roleName): void
     {
@@ -163,6 +183,9 @@ class User extends Authenticatable
 
     /**
      * Remove a role from user
+     *
+     * @param string $roleName
+     * @return void
      */
     public function removeRole(string $roleName): void
     {
@@ -172,10 +195,8 @@ class User extends Authenticatable
         }
     }
 
-    /**
-     * Các venue mà user này là manager (qua bảng venue_managers).
-     */
-    public function managedVenues()
+    public function venue_managers()
+>>>>>>> origin/API/auth
     {
         return $this->belongsToMany(Venue::class, 'venue_managers');
     }
@@ -186,5 +207,15 @@ class User extends Authenticatable
     public function venues()
     {
         return $this->hasMany(Venue::class, 'owner_id');
+    }
+
+    /**
+     * Kiểm tra user có phải admin không.
+     */
+    public function isAdmin(): bool
+    {
+        return $this->roles()
+            ->where('role_name', 'admin')
+            ->exists();
     }
 }

@@ -7,6 +7,9 @@ use App\Http\Controllers\Owner\VenueController;
 use App\Http\Controllers\Owner\VenueAmenityController;
 use App\Http\Controllers\Owner\ServiceController;
 use App\Http\Controllers\Owner\SpaceAmenityController;
+use App\Http\Controllers\Owner\OwnerSpaceController;
+use App\Http\Controllers\Owner\OwnerVenueManagerController;
+use App\Http\Controllers\Search\SearchSpaceController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\Admin\UserController;
 
@@ -20,6 +23,15 @@ use App\Http\Controllers\Admin\UserController;
 | be assigned to the "api" middleware group. Make something great!
 |
 */
+
+/*
+|--------------------------------------------------------------------------
+| Search Routes (Public)
+|--------------------------------------------------------------------------
+*/
+Route::prefix('search')->group(function () {
+    Route::get('spaces', [SearchSpaceController::class, 'index']);
+});
 
 /*
 |--------------------------------------------------------------------------
@@ -94,9 +106,21 @@ Route::middleware(['auth:sanctum'])
         Route::put('services/{service}', [ServiceController::class, 'update']);
         Route::delete('services/{service}', [ServiceController::class, 'destroy']);
 
+        // Space CRUD
+        Route::get('venues/{venue}/spaces', [OwnerSpaceController::class, 'index']);
+        Route::post('venues/{venue}/spaces', [OwnerSpaceController::class, 'store']);
+        Route::get('spaces/{space}', [OwnerSpaceController::class, 'show']);
+        Route::put('spaces/{space}', [OwnerSpaceController::class, 'update']);
+        Route::delete('spaces/{space}', [OwnerSpaceController::class, 'destroy']);
+
         // Space Amenities
         Route::get('spaces/{space}/amenities', [SpaceAmenityController::class, 'index']);
         Route::put('spaces/{space}/amenities', [SpaceAmenityController::class, 'sync']);
+
+        // Venue Managers
+        Route::get('venues/{venue}/managers', [OwnerVenueManagerController::class, 'index']);
+        Route::post('venues/{venue}/managers', [OwnerVenueManagerController::class, 'store']);
+        Route::delete('venues/{venue}/managers/{user}', [OwnerVenueManagerController::class, 'destroy']);
     });
 
 Route::middleware('auth:sanctum')->get('/user', function (Request $request) {

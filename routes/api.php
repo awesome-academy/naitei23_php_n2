@@ -7,6 +7,8 @@ use App\Http\Controllers\Owner\VenueController;
 use App\Http\Controllers\Owner\VenueAmenityController;
 use App\Http\Controllers\Owner\ServiceController;
 use App\Http\Controllers\Owner\SpaceAmenityController;
+use App\Http\Controllers\AuthController;
+use App\Http\Controllers\Admin\UserController;
 
 /*
 |--------------------------------------------------------------------------
@@ -19,12 +21,60 @@ use App\Http\Controllers\Owner\SpaceAmenityController;
 |
 */
 
+/*
+|--------------------------------------------------------------------------
+| Authentication Routes (Public)
+|--------------------------------------------------------------------------
+*/
+Route::prefix('auth')->group(function () {
+    // Public routes (không cần đăng nhập)
+    Route::post('/register', [AuthController::class, 'register']);
+    Route::post('/login', [AuthController::class, 'login']);
+    Route::post('/forgot-password', [AuthController::class, 'forgotPassword']);
+
+    // Protected routes (cần đăng nhập)
+    Route::middleware('auth:sanctum')->group(function () {
+        Route::post('/logout', [AuthController::class, 'logout']);
+        Route::get('/me', [AuthController::class, 'me']);
+    });
+});
+
+/*
+|--------------------------------------------------------------------------
+| Admin Routes (Only Admin)
+|--------------------------------------------------------------------------
+*/
+Route::prefix('admin')->middleware(['auth:sanctum', 'role:admin'])->group(function () {
+    // User management
+    Route::get('/users', [UserController::class, 'index']);
+    Route::post('/users', [UserController::class, 'store']);
+    Route::get('/users/{id}', [UserController::class, 'show']);
+    Route::put('/users/{id}', [UserController::class, 'update']);
+    Route::delete('/users/{id}', [UserController::class, 'destroy']);
+    Route::patch('/users/{id}/role', [UserController::class, 'updateRole']);
+    Route::patch('/users/{id}/toggle-active', [UserController::class, 'toggleActive']);
+});
+
+/*
+|--------------------------------------------------------------------------
+| Moderator Routes (Admin & Moderator)
+|--------------------------------------------------------------------------
+*/
+Route::prefix('moderator')->middleware(['auth:sanctum', 'role:admin,moderator'])->group(function () {
+    // Thêm các routes cho moderator ở đây sau này
+    // Ví dụ: quản lý venues, bookings, etc.
+});
+
+/*
+|--------------------------------------------------------------------------
+| Owner Routes (Venue Management)
+|--------------------------------------------------------------------------
+*/
 // Global amenities list (public/shared)
 Route::get('amenities', [AmenityController::class, 'index']);
 
-// Owner routes - Venue CRUD
-// TODO: Replace 'fake.auth' with 'auth:sanctum' when authentication is ready
-Route::middleware('fake.auth')
+// Owner routes - NOW USING SANCTUM AUTH
+Route::middleware(['auth:sanctum'])
     ->prefix('owner')
     ->group(function () {
         // Venue CRUD

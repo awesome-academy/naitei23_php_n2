@@ -111,6 +111,68 @@ class User extends Authenticatable
     }
 
     /**
+     * Check if user has a specific role
+     */
+    public function hasRole(string $roleName): bool
+    {
+        return $this->roles()->where('role_name', $roleName)->exists();
+    }
+
+    /**
+     * Check if user has any of the given roles
+     */
+    public function hasAnyRole(array $roleNames): bool
+    {
+        return $this->roles()->whereIn('role_name', $roleNames)->exists();
+    }
+
+    /**
+     * Check if user is admin
+     */
+    public function isAdmin(): bool
+    {
+        return $this->hasRole('admin');
+    }
+
+    /**
+     * Check if user is moderator
+     */
+    public function isModerator(): bool
+    {
+        return $this->hasRole('moderator');
+    }
+
+    /**
+     * Check if user is regular user
+     */
+    public function isUser(): bool
+    {
+        return $this->hasRole('user');
+    }
+
+    /**
+     * Assign a role to user
+     */
+    public function assignRole(string $roleName): void
+    {
+        $role = \App\Models\Role::where('role_name', $roleName)->first();
+        if ($role && !$this->hasRole($roleName)) {
+            $this->roles()->attach($role->id);
+        }
+    }
+
+    /**
+     * Remove a role from user
+     */
+    public function removeRole(string $roleName): void
+    {
+        $role = \App\Models\Role::where('role_name', $roleName)->first();
+        if ($role) {
+            $this->roles()->detach($role->id);
+        }
+    }
+
+    /**
      * Các venue mà user này là manager (qua bảng venue_managers).
      */
     public function managedVenues()
@@ -124,15 +186,5 @@ class User extends Authenticatable
     public function venues()
     {
         return $this->hasMany(Venue::class, 'owner_id');
-    }
-
-    /**
-     * Kiểm tra user có phải admin không.
-     */
-    public function isAdmin(): bool
-    {
-        return $this->roles()
-            ->where('role_name', 'admin')
-            ->exists();
     }
 }

@@ -12,12 +12,15 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
  */
 class Role extends Model
 {
-    // Bảng roles không có created_at / updated_at
+    /**
+     * Tắt timestamps vì bảng roles không có created_at và updated_at
+     */
     public $timestamps = false;
 
-    protected $fillable = [
-        'role_name',
-    ];
+    /**
+     * @var array
+     */
+    protected $fillable = ['role_name'];
 
     /**
      * Users thuộc role này.

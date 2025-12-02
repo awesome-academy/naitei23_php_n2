@@ -57,4 +57,23 @@ class Space extends Model
     {
         return $this->belongsToMany(Amenity::class, 'space_amenities');
     }
+
+    /**
+     * Get upcoming bookings for this space (next 30 days).
+     */
+    public function upcomingBookings(): HasMany
+    {
+        $now = now();
+        $end = now()->addDays(30);
+
+        return $this->hasMany(Booking::class)
+            ->where('start_time', '>=', $now)
+            ->where('start_time', '<=', $end)
+            ->whereIn('status', [
+                Booking::STATUS_PENDING_CONFIRMATION,
+                Booking::STATUS_AWAITING_PAYMENT,
+                Booking::STATUS_CONFIRMED,
+            ])
+            ->orderBy('start_time');
+    }
 }

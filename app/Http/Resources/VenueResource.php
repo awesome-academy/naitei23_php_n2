@@ -27,9 +27,9 @@ class VenueResource extends JsonResource
             'created_at'  => $this->created_at?->toISOString(),
             'updated_at'  => $this->updated_at?->toISOString(),
 
-            // chỉ load nếu đã load quan hệ
-            'amenities' => $this->whenLoaded('amenities'),
-            'spaces'    => $this->whenLoaded('spaces'),
+            // Load relationships if eager loaded
+            'spaces'    => SpaceResource::collection($this->whenLoaded('spaces')),
+            'amenities' => AmenityResource::collection($this->whenLoaded('amenities')),
         ];
     }
 }

@@ -27,10 +27,10 @@ class SpaceResource extends JsonResource
             'created_at'      => $this->created_at?->toISOString(),
             'updated_at'      => $this->updated_at?->toISOString(),
 
-            // Load amenities nếu đã eager load
-            'amenities' => AmenityResource::collection(
-                $this->whenLoaded('amenities')
-            ),
+            // Load relationships if eager loaded
+            'venue'     => new VenueShortResource($this->whenLoaded('venue')),
+            'amenities' => AmenityResource::collection($this->whenLoaded('amenities')),
+            'upcoming_bookings' => BookingResource::collection($this->whenLoaded('upcomingBookings')),
         ];
     }
 }

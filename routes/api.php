@@ -10,6 +10,8 @@ use App\Http\Controllers\Owner\SpaceAmenityController;
 use App\Http\Controllers\Owner\OwnerSpaceController;
 use App\Http\Controllers\Owner\OwnerVenueManagerController;
 use App\Http\Controllers\Search\SearchSpaceController;
+use App\Http\Controllers\PublicVenueController;
+use App\Http\Controllers\PublicSpaceController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\Admin\UserController;
 
@@ -23,6 +25,14 @@ use App\Http\Controllers\Admin\UserController;
 | be assigned to the "api" middleware group. Make something great!
 |
 */
+
+/*
+|--------------------------------------------------------------------------
+| Public Detail Routes
+|--------------------------------------------------------------------------
+*/
+Route::get('venues/{id}', [PublicVenueController::class, 'show']);
+Route::get('spaces/{id}', [PublicSpaceController::class, 'show']);
 
 /*
 |--------------------------------------------------------------------------

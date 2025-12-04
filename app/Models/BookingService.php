@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 /**
  * @property integer $booking_id
@@ -14,24 +15,31 @@ use Illuminate\Database\Eloquent\Model;
  */
 class BookingService extends Model
 {
-    /**
-     * @var array
-     */
-    protected $fillable = ['quantity', 'price_at_booking'];
+    protected $table = 'booking_services';
 
-    /**
-     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
-     */
-    public function booking()
+    public $timestamps = false;
+
+    public $incrementing = false;
+
+    protected $fillable = [
+        'booking_id',
+        'service_id',
+        'quantity',
+        'price_at_booking',
+    ];
+
+    protected $casts = [
+        'quantity'         => 'integer',
+        'price_at_booking' => 'decimal:2',
+    ];
+
+    public function booking(): BelongsTo
     {
-        return $this->belongsTo('App\Models\Booking');
+        return $this->belongsTo(Booking::class);
     }
 
-    /**
-     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
-     */
-    public function service()
+    public function service(): BelongsTo
     {
-        return $this->belongsTo('App\Models\Service');
+        return $this->belongsTo(Service::class);
     }
 }

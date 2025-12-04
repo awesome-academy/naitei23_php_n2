@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 /**
  * @property integer $conversation_id
@@ -12,24 +13,24 @@ use Illuminate\Database\Eloquent\Model;
  */
 class ConversationParticipant extends Model
 {
-    /**
-     * @var array
-     */
-    protected $fillable = [];
+    protected $table = 'conversation_participants';
 
-    /**
-     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
-     */
-    public function conversation()
+    public $timestamps = false;
+
+    public $incrementing = false;
+
+    protected $fillable = [
+        'conversation_id',
+        'user_id',
+    ];
+
+    public function conversation(): BelongsTo
     {
-        return $this->belongsTo('App\Models\Conversation');
+        return $this->belongsTo(Conversation::class);
     }
 
-    /**
-     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
-     */
-    public function user()
+    public function user(): BelongsTo
     {
-        return $this->belongsTo('App\Models\User');
+        return $this->belongsTo(User::class);
     }
 }

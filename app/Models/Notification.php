@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 /**
  * @property integer $id
@@ -16,16 +17,27 @@ use Illuminate\Database\Eloquent\Model;
  */
 class Notification extends Model
 {
-    /**
-     * @var array
-     */
-    protected $fillable = ['user_id', 'message', 'type', 'is_read', 'related_url', 'created_at'];
+    protected $table = 'notifications';
 
-    /**
-     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
-     */
-    public function user()
+    // Bảng chỉ có created_at, không có updated_at
+    public $timestamps = false;
+
+    protected $fillable = [
+        'user_id',
+        'message',
+        'type',
+        'is_read',
+        'related_url',
+        'created_at',
+    ];
+
+    protected $casts = [
+        'is_read'    => 'boolean',
+        'created_at' => 'datetime',
+    ];
+
+    public function user(): BelongsTo
     {
-        return $this->belongsTo('App\Models\User');
+        return $this->belongsTo(User::class);
     }
 }

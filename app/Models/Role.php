@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 /**
  * @property integer $id
@@ -22,10 +23,10 @@ class Role extends Model
     protected $fillable = ['role_name'];
 
     /**
-     * @return \Illuminate\Database\Eloquent\Relations\BelongsToMany
+     * Users thuộc role này.
      */
-    public function users()
+    public function users(): BelongsToMany
     {
-        return $this->belongsToMany('App\Models\User', 'user_roles');
+        return $this->belongsToMany(User::class, 'user_roles');
     }
 }

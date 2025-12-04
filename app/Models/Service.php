@@ -3,6 +3,9 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 /**
  * @property integer $id
@@ -15,24 +18,32 @@ use Illuminate\Database\Eloquent\Model;
  */
 class Service extends Model
 {
-    /**
-     * @var array
-     */
-    protected $fillable = ['venue_id', 'name', 'price', 'description'];
+    protected $fillable = [
+        'venue_id',
+        'name',
+        'description',
+        'price',
+    ];
 
-    /**
-     * @return \Illuminate\Database\Eloquent\Relations\HasMany
-     */
-    public function bookingServices()
+    protected $casts = [
+        'price'      => 'decimal:2',
+        'created_at' => 'datetime',
+        'updated_at' => 'datetime',
+    ];
+
+    public function venue(): BelongsTo
     {
-        return $this->hasMany('App\Models\BookingService');
+        return $this->belongsTo(Venue::class);
     }
 
-    /**
-     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
-     */
-    public function venue()
+    public function bookings(): BelongsToMany
     {
-        return $this->belongsTo('App\Models\Venue');
+        return $this->belongsToMany(Booking::class, 'booking_services')
+            ->withPivot(['quantity', 'price_at_booking']);
+    }
+
+    public function bookingServices(): HasMany
+    {
+        return $this->hasMany(BookingService::class);
     }
 }

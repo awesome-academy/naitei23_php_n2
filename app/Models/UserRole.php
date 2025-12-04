@@ -33,6 +33,12 @@ class UserRole extends Model
      */
     protected $fillable = ['user_id', 'role_id'];
 
+<<<<<<< HEAD
+=======
+    // Bảng này dùng composite key (user_id, role_id), không auto-increment
+    public $incrementing = false;
+
+>>>>>>> master
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);

@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\User;
 use App\Models\Role;
 use App\Mail\PasswordResetMail;
+use App\Mail\VerifyEmailMail;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Auth;
@@ -46,6 +47,7 @@ class AuthController extends Controller
 
     /**
      * Register a new user (automatically assigns 'user' role)
+     * Sends verification email
      * 
      * @param Request $request
      * @return JsonResponse
@@ -62,6 +64,9 @@ class AuthController extends Controller
 
             DB::beginTransaction();
 
+            // Tạo verification token
+            $verificationToken = Str::random(64);
+
             $user = User::create([
                 'full_name' => $validated['full_name'],
                 'email' => $validated['email'],
@@ -69,6 +74,7 @@ class AuthController extends Controller
                 'phone_number' => $validated['phone_number'] ?? null,
                 'is_active' => true,
                 'is_verified' => false,
+                'verification_token' => $verificationToken,
             ]);
 
             // Tự động gán role 'user' cho người đăng ký
@@ -77,21 +83,22 @@ class AuthController extends Controller
                 $user->roles()->attach($userRole->id);
             }
 
+            // Tạo URL xác thực
+            $verificationUrl = url("/api/auth/verify-email?token={$verificationToken}");
+
+            // Gửi email xác thực
+            Mail::to($user->email)->send(new VerifyEmailMail($user->full_name, $verificationUrl));
+
             DB::commit();
 
             // Load roles relationship
             $user->load('roles');
 
-            // Tạo token cho user
-            $token = $user->createToken('auth_token')->plainTextToken;
-
             return response()->json([
                 'success' => true,
-                'message' => 'Đăng ký thành công!',
+                'message' => 'Đăng ký thành công! Vui lòng kiểm tra email để xác thực tài khoản.',
                 'data' => [
                     'user' => $this->formatUserResponse($user),
-                    'token' => $token,
-                    'token_type' => 'Bearer',
                 ],
             ], 201);
         } catch (ValidationException $e) {
@@ -141,6 +148,16 @@ class AuthController extends Controller
                 return response()->json([
                     'success' => false,
                     'message' => 'Tài khoản của bạn đã bị vô hiệu hóa.',
+                ], 403);
+            }
+
+            // Kiểm tra đã xác thực email chưa (chỉ áp dụng cho role user)
+            $userRoles = $user->roles()->pluck('role_name')->toArray();
+            if (in_array('user', $userRoles) && !$user->is_verified) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Tài khoản chưa được xác thực. Vui lòng kiểm tra email để xác thực.',
+                    'require_verification' => true,
                 ], 403);
             }
 
@@ -326,6 +343,109 @@ class AuthController extends Controller
             return response()->json([
                 'success' => false,
                 'message' => 'Đã xảy ra lỗi khi đặt lại mật khẩu.',
+                'error' => $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    /**
+     * Verify email with token
+     * This is called when user clicks the verification link in email
+     * 
+     * @param Request $request
+     * @return \Illuminate\View\View
+     */
+    public function verifyEmail(Request $request)
+    {
+        $token = $request->query('token');
+
+        if (!$token) {
+            return view('emails.verify-failed', [
+                'message' => 'Token xác thực không hợp lệ.',
+            ]);
+        }
+
+        $user = User::where('verification_token', $token)->first();
+
+        if (!$user) {
+            return view('emails.verify-failed', [
+                'message' => 'Token xác thực không tồn tại hoặc đã hết hạn.',
+            ]);
+        }
+
+        if ($user->is_verified) {
+            return view('emails.verify-success', [
+                'email' => $user->email,
+                'loginUrl' => config('app.frontend_url', 'http://localhost:3000') . '/login',
+            ]);
+        }
+
+        // Cập nhật trạng thái xác thực
+        $user->is_verified = true;
+        $user->verification_token = null; // Xóa token sau khi xác thực
+        $user->save();
+
+        return view('emails.verify-success', [
+            'email' => $user->email,
+            'loginUrl' => config('app.frontend_url', 'http://localhost:3000') . '/login',
+        ]);
+    }
+
+    /**
+     * Resend verification email
+     * 
+     * @param Request $request
+     * @return JsonResponse
+     */
+    public function resendVerification(Request $request): JsonResponse
+    {
+        try {
+            $validated = $request->validate([
+                'email' => ['required', 'email'],
+            ]);
+
+            $user = User::where('email', $validated['email'])->first();
+
+            if (!$user) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Không tìm thấy tài khoản với email này.',
+                ], 404);
+            }
+
+            if ($user->is_verified) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Tài khoản đã được xác thực trước đó.',
+                ], 400);
+            }
+
+            // Tạo token mới
+            $verificationToken = Str::random(64);
+            $user->verification_token = $verificationToken;
+            $user->save();
+
+            // Tạo URL xác thực
+            $verificationUrl = url("/api/auth/verify-email?token={$verificationToken}");
+
+            // Gửi email xác thực
+            Mail::to($user->email)->send(new VerifyEmailMail($user->full_name, $verificationUrl));
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Email xác thực đã được gửi lại. Vui lòng kiểm tra hộp thư.',
+            ], 200);
+
+        } catch (ValidationException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Dữ liệu không hợp lệ.',
+                'errors' => $e->errors(),
+            ], 422);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Đã xảy ra lỗi khi gửi email xác thực.',
                 'error' => $e->getMessage(),
             ], 500);
         }

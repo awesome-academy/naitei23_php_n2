@@ -2,11 +2,17 @@
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
+<<<<<<< HEAD
+=======
+use App\Http\Controllers\AuthController;
+use App\Http\Controllers\Admin\UserController;
+>>>>>>> master
 use App\Http\Controllers\AmenityController;
 use App\Http\Controllers\Owner\VenueController;
 use App\Http\Controllers\Owner\VenueAmenityController;
 use App\Http\Controllers\Owner\ServiceController;
 use App\Http\Controllers\Owner\SpaceAmenityController;
+<<<<<<< HEAD
 use App\Http\Controllers\Owner\OwnerSpaceController;
 use App\Http\Controllers\Owner\OwnerVenueManagerController;
 use App\Http\Controllers\Search\SearchSpaceController;
@@ -14,6 +20,8 @@ use App\Http\Controllers\PublicVenueController;
 use App\Http\Controllers\PublicSpaceController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\Admin\UserController;
+=======
+>>>>>>> master
 
 /*
 |--------------------------------------------------------------------------
@@ -26,6 +34,7 @@ use App\Http\Controllers\Admin\UserController;
 |
 */
 
+<<<<<<< HEAD
 /*
 |--------------------------------------------------------------------------
 | Public Detail Routes
@@ -43,6 +52,8 @@ Route::prefix('search')->group(function () {
     Route::get('spaces', [SearchSpaceController::class, 'index']);
 });
 
+=======
+>>>>>>> master
 /*
 |--------------------------------------------------------------------------
 | Authentication Routes (Public)
@@ -50,9 +61,17 @@ Route::prefix('search')->group(function () {
 */
 Route::prefix('auth')->group(function () {
     // Public routes (không cần đăng nhập)
+<<<<<<< HEAD
     Route::post('/register', [AuthController::class, 'register']);
     Route::post('/login', [AuthController::class, 'login']);
     Route::post('/forgot-password', [AuthController::class, 'forgotPassword']);
+=======
+    Route::post('/register', [AuthController::class, 'register']);  // Chỉ cho user đăng ký
+    Route::post('/login', [AuthController::class, 'login']);        // Dùng chung cho tất cả roles
+    Route::post('/forgot-password', [AuthController::class, 'forgotPassword']); // Reset password cho user
+    Route::get('/verify-email', [AuthController::class, 'verifyEmail']); // Xác thực email (click từ email)
+    Route::post('/resend-verification', [AuthController::class, 'resendVerification']); // Gửi lại email xác thực
+>>>>>>> master
 
     // Protected routes (cần đăng nhập)
     Route::middleware('auth:sanctum')->group(function () {
@@ -87,11 +106,15 @@ Route::prefix('moderator')->middleware(['auth:sanctum', 'role:admin,moderator'])
     // Ví dụ: quản lý venues, bookings, etc.
 });
 
+<<<<<<< HEAD
 /*
 |--------------------------------------------------------------------------
 | Owner Routes (Venue Management)
 |--------------------------------------------------------------------------
 */
+=======
+// Giữ lại route cũ để tương thích ngược
+>>>>>>> master
 // Global amenities list (public/shared)
 Route::get('amenities', [AmenityController::class, 'index']);
 

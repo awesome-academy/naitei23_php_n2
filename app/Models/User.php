@@ -112,10 +112,13 @@ class User extends Authenticatable
 
     /**
 <<<<<<< HEAD
+<<<<<<< HEAD
      * Các venue mà user này là manager (qua bảng venue_managers).
      */
     public function managedVenues()
 =======
+=======
+>>>>>>> master
      * Check if user has a specific role
      *
      * @param string $roleName
@@ -196,7 +199,13 @@ class User extends Authenticatable
     }
 
     public function venue_managers()
+<<<<<<< HEAD
 >>>>>>> origin/API/auth
+=======
+     * Các venue mà user này là manager (qua bảng venue_managers).
+     */
+    public function managedVenues()
+>>>>>>> master
     {
         return $this->belongsToMany(Venue::class, 'venue_managers');
     }

@@ -2,13 +2,26 @@
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
+<<<<<<< HEAD
+=======
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\Admin\UserController;
+>>>>>>> master
 use App\Http\Controllers\AmenityController;
 use App\Http\Controllers\Owner\VenueController;
 use App\Http\Controllers\Owner\VenueAmenityController;
 use App\Http\Controllers\Owner\ServiceController;
 use App\Http\Controllers\Owner\SpaceAmenityController;
+<<<<<<< HEAD
+use App\Http\Controllers\Owner\OwnerSpaceController;
+use App\Http\Controllers\Owner\OwnerVenueManagerController;
+use App\Http\Controllers\Search\SearchSpaceController;
+use App\Http\Controllers\PublicVenueController;
+use App\Http\Controllers\PublicSpaceController;
+use App\Http\Controllers\AuthController;
+use App\Http\Controllers\Admin\UserController;
+=======
+>>>>>>> master
 
 /*
 |--------------------------------------------------------------------------
@@ -21,6 +34,26 @@ use App\Http\Controllers\Owner\SpaceAmenityController;
 |
 */
 
+<<<<<<< HEAD
+/*
+|--------------------------------------------------------------------------
+| Public Detail Routes
+|--------------------------------------------------------------------------
+*/
+Route::get('venues/{id}', [PublicVenueController::class, 'show']);
+Route::get('spaces/{id}', [PublicSpaceController::class, 'show']);
+
+/*
+|--------------------------------------------------------------------------
+| Search Routes (Public)
+|--------------------------------------------------------------------------
+*/
+Route::prefix('search')->group(function () {
+    Route::get('spaces', [SearchSpaceController::class, 'index']);
+});
+
+=======
+>>>>>>> master
 /*
 |--------------------------------------------------------------------------
 | Authentication Routes (Public)
@@ -28,11 +61,17 @@ use App\Http\Controllers\Owner\SpaceAmenityController;
 */
 Route::prefix('auth')->group(function () {
     // Public routes (không cần đăng nhập)
+<<<<<<< HEAD
+    Route::post('/register', [AuthController::class, 'register']);
+    Route::post('/login', [AuthController::class, 'login']);
+    Route::post('/forgot-password', [AuthController::class, 'forgotPassword']);
+=======
     Route::post('/register', [AuthController::class, 'register']);  // Chỉ cho user đăng ký
     Route::post('/login', [AuthController::class, 'login']);        // Dùng chung cho tất cả roles
     Route::post('/forgot-password', [AuthController::class, 'forgotPassword']); // Reset password cho user
     Route::get('/verify-email', [AuthController::class, 'verifyEmail']); // Xác thực email (click từ email)
     Route::post('/resend-verification', [AuthController::class, 'resendVerification']); // Gửi lại email xác thực
+>>>>>>> master
 
     // Protected routes (cần đăng nhập)
     Route::middleware('auth:sanctum')->group(function () {
@@ -48,13 +87,13 @@ Route::prefix('auth')->group(function () {
 */
 Route::prefix('admin')->middleware(['auth:sanctum', 'role:admin'])->group(function () {
     // User management
-    Route::get('/users', [UserController::class, 'index']);              // Danh sách users
-    Route::post('/users', [UserController::class, 'store']);             // Tạo user mới (với role bất kỳ)
-    Route::get('/users/{id}', [UserController::class, 'show']);          // Chi tiết user
-    Route::put('/users/{id}', [UserController::class, 'update']);        // Cập nhật user
-    Route::delete('/users/{id}', [UserController::class, 'destroy']);    // Xóa user
-    Route::patch('/users/{id}/role', [UserController::class, 'updateRole']);     // Đổi role
-    Route::patch('/users/{id}/toggle-active', [UserController::class, 'toggleActive']); // Bật/tắt active
+    Route::get('/users', [UserController::class, 'index']);
+    Route::post('/users', [UserController::class, 'store']);
+    Route::get('/users/{id}', [UserController::class, 'show']);
+    Route::put('/users/{id}', [UserController::class, 'update']);
+    Route::delete('/users/{id}', [UserController::class, 'destroy']);
+    Route::patch('/users/{id}/role', [UserController::class, 'updateRole']);
+    Route::patch('/users/{id}/toggle-active', [UserController::class, 'toggleActive']);
 });
 
 /*
@@ -67,13 +106,20 @@ Route::prefix('moderator')->middleware(['auth:sanctum', 'role:admin,moderator'])
     // Ví dụ: quản lý venues, bookings, etc.
 });
 
+<<<<<<< HEAD
+/*
+|--------------------------------------------------------------------------
+| Owner Routes (Venue Management)
+|--------------------------------------------------------------------------
+*/
+=======
 // Giữ lại route cũ để tương thích ngược
+>>>>>>> master
 // Global amenities list (public/shared)
 Route::get('amenities', [AmenityController::class, 'index']);
 
-// Owner routes - Venue CRUD
-// TODO: Replace 'fake.auth' with 'auth:sanctum' when authentication is ready
-Route::middleware('fake.auth')
+// Owner routes - NOW USING SANCTUM AUTH
+Route::middleware(['auth:sanctum'])
     ->prefix('owner')
     ->group(function () {
         // Venue CRUD
@@ -93,9 +139,21 @@ Route::middleware('fake.auth')
         Route::put('services/{service}', [ServiceController::class, 'update']);
         Route::delete('services/{service}', [ServiceController::class, 'destroy']);
 
+        // Space CRUD
+        Route::get('venues/{venue}/spaces', [OwnerSpaceController::class, 'index']);
+        Route::post('venues/{venue}/spaces', [OwnerSpaceController::class, 'store']);
+        Route::get('spaces/{space}', [OwnerSpaceController::class, 'show']);
+        Route::put('spaces/{space}', [OwnerSpaceController::class, 'update']);
+        Route::delete('spaces/{space}', [OwnerSpaceController::class, 'destroy']);
+
         // Space Amenities
         Route::get('spaces/{space}/amenities', [SpaceAmenityController::class, 'index']);
         Route::put('spaces/{space}/amenities', [SpaceAmenityController::class, 'sync']);
+
+        // Venue Managers
+        Route::get('venues/{venue}/managers', [OwnerVenueManagerController::class, 'index']);
+        Route::post('venues/{venue}/managers', [OwnerVenueManagerController::class, 'store']);
+        Route::delete('venues/{venue}/managers/{user}', [OwnerVenueManagerController::class, 'destroy']);
     });
 
 Route::middleware('auth:sanctum')->get('/user', function (Request $request) {

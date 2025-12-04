@@ -111,9 +111,9 @@ class User extends Authenticatable
     }
 
     /**
-     * Check if user has a specific role
-     * 
-     * @param string $roleName
+     * Check if user has any of the given roles
+     *
+     * @param array $roleName
      * @return bool
      */
     public function hasRole(string $roleName): bool
@@ -123,7 +123,7 @@ class User extends Authenticatable
 
     /**
      * Check if user has any of the given roles
-     * 
+     *
      * @param array $roleNames
      * @return bool
      */
@@ -134,7 +134,7 @@ class User extends Authenticatable
 
     /**
      * Check if user is moderator
-     * 
+     *
      * @return bool
      */
     public function isModerator(): bool
@@ -144,7 +144,7 @@ class User extends Authenticatable
 
     /**
      * Check if user is regular user
-     * 
+     *
      * @return bool
      */
     public function isUser(): bool
@@ -154,7 +154,7 @@ class User extends Authenticatable
 
     /**
      * Assign a role to user
-     * 
+     *
      * @param string $roleName
      * @return void
      */
@@ -168,7 +168,7 @@ class User extends Authenticatable
 
     /**
      * Remove a role from user
-     * 
+     *
      * @param string $roleName
      * @return void
      */
@@ -180,6 +180,12 @@ class User extends Authenticatable
         }
     }
 
+
+    //public function venue_managers()
+
+    /** 
+     * Các venue mà user này là manager (qua bảng venue_managers).
+     */
     public function managedVenues()
     {
         return $this->belongsToMany(Venue::class, 'venue_managers');

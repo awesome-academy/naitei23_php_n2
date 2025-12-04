@@ -24,4 +24,9 @@ class Amenity extends Model
     {
         return $this->belongsToMany(Venue::class, 'venue_amenities');
     }
+
+    public function spaces(): BelongsToMany
+    {
+        return $this->belongsToMany(Space::class, 'space_amenities');
+    }
 }

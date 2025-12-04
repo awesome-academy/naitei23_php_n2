@@ -133,16 +133,6 @@ class User extends Authenticatable
     }
 
     /**
-     * Check if user is admin
-     * 
-     * @return bool
-     */
-    public function isAdmin(): bool
-    {
-        return $this->hasRole('admin');
-    }
-
-    /**
      * Check if user is moderator
      * 
      * @return bool
@@ -190,9 +180,6 @@ class User extends Authenticatable
         }
     }
 
-    public function venue_managers()
-     * Các venue mà user này là manager (qua bảng venue_managers).
-     */
     public function managedVenues()
     {
         return $this->belongsToMany(Venue::class, 'venue_managers');

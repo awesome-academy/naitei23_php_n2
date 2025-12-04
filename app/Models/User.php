@@ -111,17 +111,9 @@ class User extends Authenticatable
     }
 
     /**
-<<<<<<< HEAD
-<<<<<<< HEAD
-     * Các venue mà user này là manager (qua bảng venue_managers).
-     */
-    public function managedVenues()
-=======
-=======
->>>>>>> master
-     * Check if user has a specific role
+     * Check if user has any of the given roles
      *
-     * @param string $roleName
+     * @param array $roleName
      * @return bool
      */
     public function hasRole(string $roleName): bool
@@ -138,16 +130,6 @@ class User extends Authenticatable
     public function hasAnyRole(array $roleNames): bool
     {
         return $this->roles()->whereIn('role_name', $roleNames)->exists();
-    }
-
-    /**
-     * Check if user is admin
-     *
-     * @return bool
-     */
-    public function isAdmin(): bool
-    {
-        return $this->hasRole('admin');
     }
 
     /**
@@ -198,14 +180,13 @@ class User extends Authenticatable
         }
     }
 
-    public function venue_managers()
-<<<<<<< HEAD
->>>>>>> origin/API/auth
-=======
+
+    //public function venue_managers()
+
+    /** 
      * Các venue mà user này là manager (qua bảng venue_managers).
      */
     public function managedVenues()
->>>>>>> master
     {
         return $this->belongsToMany(Venue::class, 'venue_managers');
     }

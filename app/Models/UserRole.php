@@ -13,17 +13,23 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  */
 class UserRole extends Model
 {
+    /**
+     * Tên bảng
+     */
     protected $table = 'user_roles';
 
+    /**
+     * Tắt timestamps vì bảng user_roles không có created_at và updated_at
+     */
     public $timestamps = false;
+
+    /**
+     * @var array
+     */
+    protected $fillable = ['user_id', 'role_id'];
 
     // Bảng này dùng composite key (user_id, role_id), không auto-increment
     public $incrementing = false;
-
-    protected $fillable = [
-        'user_id',
-        'role_id',
-    ];
 
     public function user(): BelongsTo
     {

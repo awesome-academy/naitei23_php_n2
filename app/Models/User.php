@@ -111,6 +111,86 @@ class User extends Authenticatable
     }
 
     /**
+     * Check if user has a specific role
+     * 
+     * @param string $roleName
+     * @return bool
+     */
+    public function hasRole(string $roleName): bool
+    {
+        return $this->roles()->where('role_name', $roleName)->exists();
+    }
+
+    /**
+     * Check if user has any of the given roles
+     * 
+     * @param array $roleNames
+     * @return bool
+     */
+    public function hasAnyRole(array $roleNames): bool
+    {
+        return $this->roles()->whereIn('role_name', $roleNames)->exists();
+    }
+
+    /**
+     * Check if user is admin
+     * 
+     * @return bool
+     */
+    public function isAdmin(): bool
+    {
+        return $this->hasRole('admin');
+    }
+
+    /**
+     * Check if user is moderator
+     * 
+     * @return bool
+     */
+    public function isModerator(): bool
+    {
+        return $this->hasRole('moderator');
+    }
+
+    /**
+     * Check if user is regular user
+     * 
+     * @return bool
+     */
+    public function isUser(): bool
+    {
+        return $this->hasRole('user');
+    }
+
+    /**
+     * Assign a role to user
+     * 
+     * @param string $roleName
+     * @return void
+     */
+    public function assignRole(string $roleName): void
+    {
+        $role = \App\Models\Role::where('role_name', $roleName)->first();
+        if ($role && !$this->hasRole($roleName)) {
+            $this->roles()->attach($role->id);
+        }
+    }
+
+    /**
+     * Remove a role from user
+     * 
+     * @param string $roleName
+     * @return void
+     */
+    public function removeRole(string $roleName): void
+    {
+        $role = \App\Models\Role::where('role_name', $roleName)->first();
+        if ($role) {
+            $this->roles()->detach($role->id);
+        }
+    }
+
+    public function venue_managers()
      * Các venue mà user này là manager (qua bảng venue_managers).
      */
     public function managedVenues()

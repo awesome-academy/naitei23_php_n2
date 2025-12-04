@@ -12,8 +12,8 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('space_amenities', function (Blueprint $table) {
-            $table->unsignedBigInteger('space_id');
-            $table->unsignedInteger('amenity_id');
+            $table->bigInteger('space_id');
+            $table->integer('amenity_id');
 
             $table->primary(['space_id', 'amenity_id']);
 

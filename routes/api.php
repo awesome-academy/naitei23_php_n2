@@ -15,6 +15,8 @@ use App\Http\Controllers\Search\SearchSpaceController;
 use App\Http\Controllers\PublicVenueController;
 use App\Http\Controllers\PublicSpaceController;
 
+use App\Http\Controllers\RecommendationController;
+
 /*
 |--------------------------------------------------------------------------
 | API Routes
@@ -41,6 +43,25 @@ Route::get('spaces/{id}', [PublicSpaceController::class, 'show']);
 */
 Route::prefix('search')->group(function () {
     Route::get('spaces', [SearchSpaceController::class, 'index']);
+});
+
+/*
+|--------------------------------------------------------------------------
+| Recommendation Routes (Public - Geolocation Based)
+|--------------------------------------------------------------------------
+*/
+Route::prefix('recommendations')->group(function () {
+    // Get nearby venues based on user's geolocation
+    Route::get('/nearby', [RecommendationController::class, 'nearbyVenues']);
+    
+    // Get venues in a specific city
+    Route::get('/city', [RecommendationController::class, 'venuesByCity']);
+    
+    // Get list of available cities
+    Route::get('/cities', [RecommendationController::class, 'availableCities']);
+    
+    // Get popular/featured venues
+    Route::get('/popular', [RecommendationController::class, 'popularVenues']);
 });
 
 /*

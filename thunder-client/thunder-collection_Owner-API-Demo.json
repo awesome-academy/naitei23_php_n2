@@ -1,0 +1,571 @@
+{
+  "client": "Thunder Client",
+  "collectionName": "Owner API Demo",
+  "dateExported": "2025-12-05",
+  "version": "1.1",
+  "folders": [
+    {
+      "id": "auth-folder",
+      "name": "Auth",
+      "containerId": "",
+      "created": "2025-12-05T00:00:00.000Z",
+      "sortNum": 10000
+    },
+    {
+      "id": "venue-folder",
+      "name": "1. Venue CRUD",
+      "containerId": "",
+      "created": "2025-12-05T00:00:00.000Z",
+      "sortNum": 20000
+    },
+    {
+      "id": "venue-amenities-folder",
+      "name": "2. Venue Amenities",
+      "containerId": "",
+      "created": "2025-12-05T00:00:00.000Z",
+      "sortNum": 30000
+    },
+    {
+      "id": "space-folder",
+      "name": "3. Space CRUD",
+      "containerId": "",
+      "created": "2025-12-05T00:00:00.000Z",
+      "sortNum": 40000
+    },
+    {
+      "id": "space-amenities-folder",
+      "name": "4. Space Amenities",
+      "containerId": "",
+      "created": "2025-12-05T00:00:00.000Z",
+      "sortNum": 50000
+    },
+    {
+      "id": "managers-folder",
+      "name": "5. Managers",
+      "containerId": "",
+      "created": "2025-12-05T00:00:00.000Z",
+      "sortNum": 60000
+    },
+    {
+      "id": "public-folder",
+      "name": "6. Public APIs",
+      "containerId": "",
+      "created": "2025-12-05T00:00:00.000Z",
+      "sortNum": 70000
+    }
+  ],
+  "requests": [
+    {
+      "id": "auth-login",
+      "name": "Auth / Login as Owner",
+      "url": "{{baseUrl}}/auth/login",
+      "method": "POST",
+      "sortNum": 10000,
+      "created": "2025-12-05T00:00:00.000Z",
+      "modified": "2025-12-05T00:00:00.000Z",
+      "headers": [
+        {
+          "name": "Accept",
+          "value": "application/json"
+        },
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "params": [],
+      "body": {
+        "type": "json",
+        "raw": "{\n  \"email\": \"owner@workspace.com\",\n  \"password\": \"password\"\n}",
+        "form": []
+      },
+      "tests": [
+        {
+          "type": "set-env-var",
+          "custom": "json.data.token",
+          "action": "setto",
+          "value": "{{token}}"
+        }
+      ],
+      "containerId": "auth-folder"
+    },
+    {
+      "id": "venue-list",
+      "name": "1.1 List My Venues",
+      "url": "{{baseUrl}}/owner/venues",
+      "method": "GET",
+      "sortNum": 20000,
+      "created": "2025-12-05T00:00:00.000Z",
+      "modified": "2025-12-05T00:00:00.000Z",
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer {{token}}"
+        },
+        {
+          "name": "Accept",
+          "value": "application/json"
+        }
+      ],
+      "params": [],
+      "containerId": "venue-folder"
+    },
+    {
+      "id": "venue-create",
+      "name": "1.2 Create Venue",
+      "url": "{{baseUrl}}/owner/venues",
+      "method": "POST",
+      "sortNum": 20100,
+      "created": "2025-12-05T00:00:00.000Z",
+      "modified": "2025-12-05T00:00:00.000Z",
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer {{token}}"
+        },
+        {
+          "name": "Accept",
+          "value": "application/json"
+        },
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "params": [],
+      "body": {
+        "type": "json",
+        "raw": "{\n  \"name\": \"Cozy Co-working Space\",\n  \"description\": \"Không gian làm việc yên tĩnh, có phòng họp nhỏ và khu focus.\",\n  \"address\": \"123 Phố Huế, Hà Nội\",\n  \"city\": \"Hanoi\",\n  \"latitude\": 21.0278,\n  \"longitude\": 105.8342,\n  \"phone\": \"0123456789\"\n}",
+        "form": []
+      },
+      "tests": [
+        {
+          "type": "set-env-var",
+          "custom": "json.data.id",
+          "action": "setto",
+          "value": "{{venueId}}"
+        }
+      ],
+      "containerId": "venue-folder"
+    },
+    {
+      "id": "venue-show",
+      "name": "1.3 Show Venue Detail",
+      "url": "{{baseUrl}}/owner/venues/{{venueId}}",
+      "method": "GET",
+      "sortNum": 20200,
+      "created": "2025-12-05T00:00:00.000Z",
+      "modified": "2025-12-05T00:00:00.000Z",
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer {{token}}"
+        },
+        {
+          "name": "Accept",
+          "value": "application/json"
+        }
+      ],
+      "params": [],
+      "containerId": "venue-folder"
+    },
+    {
+      "id": "venue-update",
+      "name": "1.4 Update Venue",
+      "url": "{{baseUrl}}/owner/venues/{{venueId}}",
+      "method": "PUT",
+      "sortNum": 20300,
+      "created": "2025-12-05T00:00:00.000Z",
+      "modified": "2025-12-05T00:00:00.000Z",
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer {{token}}"
+        },
+        {
+          "name": "Accept",
+          "value": "application/json"
+        },
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "params": [],
+      "body": {
+        "type": "json",
+        "raw": "{\n  \"name\": \"Cozy Co-working Space - Updated\",\n  \"description\": \"Update mô tả venue để test API.\",\n  \"address\": \"123 Phố Huế, Hai Bà Trưng, Hà Nội\",\n  \"city\": \"Hanoi\",\n  \"latitude\": 21.0278,\n  \"longitude\": 105.8342,\n  \"phone\": \"0987654321\"\n}",
+        "form": []
+      },
+      "containerId": "venue-folder"
+    },
+    {
+      "id": "venue-delete",
+      "name": "1.5 Delete Venue",
+      "url": "{{baseUrl}}/owner/venues/{{venueId}}",
+      "method": "DELETE",
+      "sortNum": 20400,
+      "created": "2025-12-05T00:00:00.000Z",
+      "modified": "2025-12-05T00:00:00.000Z",
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer {{token}}"
+        },
+        {
+          "name": "Accept",
+          "value": "application/json"
+        }
+      ],
+      "params": [],
+      "containerId": "venue-folder"
+    },
+    {
+      "id": "venue-amenities-get",
+      "name": "2.1 Get Venue Amenities",
+      "url": "{{baseUrl}}/owner/venues/{{venueId}}/amenities",
+      "method": "GET",
+      "sortNum": 30000,
+      "created": "2025-12-05T00:00:00.000Z",
+      "modified": "2025-12-05T00:00:00.000Z",
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer {{token}}"
+        },
+        {
+          "name": "Accept",
+          "value": "application/json"
+        }
+      ],
+      "params": [],
+      "containerId": "venue-amenities-folder"
+    },
+    {
+      "id": "venue-amenities-update",
+      "name": "2.2 Update Venue Amenities",
+      "url": "{{baseUrl}}/owner/venues/{{venueId}}/amenities",
+      "method": "PUT",
+      "sortNum": 30100,
+      "created": "2025-12-05T00:00:00.000Z",
+      "modified": "2025-12-05T00:00:00.000Z",
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer {{token}}"
+        },
+        {
+          "name": "Accept",
+          "value": "application/json"
+        },
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "params": [],
+      "body": {
+        "type": "json",
+        "raw": "{\n  \"amenity_ids\": [1, 2, 3]\n}",
+        "form": []
+      },
+      "containerId": "venue-amenities-folder"
+    },
+    {
+      "id": "space-list",
+      "name": "3.1 List Spaces in Venue",
+      "url": "{{baseUrl}}/owner/venues/{{venueId}}/spaces",
+      "method": "GET",
+      "sortNum": 40000,
+      "created": "2025-12-05T00:00:00.000Z",
+      "modified": "2025-12-05T00:00:00.000Z",
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer {{token}}"
+        },
+        {
+          "name": "Accept",
+          "value": "application/json"
+        }
+      ],
+      "params": [],
+      "containerId": "space-folder"
+    },
+    {
+      "id": "space-create",
+      "name": "3.2 Create Space in Venue",
+      "url": "{{baseUrl}}/owner/venues/{{venueId}}/spaces",
+      "method": "POST",
+      "sortNum": 40100,
+      "created": "2025-12-05T00:00:00.000Z",
+      "modified": "2025-12-05T00:00:00.000Z",
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer {{token}}"
+        },
+        {
+          "name": "Accept",
+          "value": "application/json"
+        },
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "params": [],
+      "body": {
+        "type": "json",
+        "raw": "{\n  \"name\": \"Phòng họp 01\",\n  \"description\": \"Phòng họp 6 người, có TV và bảng trắng.\",\n  \"space_type_id\": 1,\n  \"capacity\": 6,\n  \"price_per_hour\": 100000,\n  \"open_time\": \"08:00\",\n  \"close_time\": \"21:00\"\n}",
+        "form": []
+      },
+      "tests": [
+        {
+          "type": "set-env-var",
+          "custom": "json.data.id",
+          "action": "setto",
+          "value": "{{spaceId}}"
+        }
+      ],
+      "containerId": "space-folder"
+    },
+    {
+      "id": "space-show",
+      "name": "3.3 Show Space Detail",
+      "url": "{{baseUrl}}/owner/spaces/{{spaceId}}",
+      "method": "GET",
+      "sortNum": 40200,
+      "created": "2025-12-05T00:00:00.000Z",
+      "modified": "2025-12-05T00:00:00.000Z",
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer {{token}}"
+        },
+        {
+          "name": "Accept",
+          "value": "application/json"
+        }
+      ],
+      "params": [],
+      "containerId": "space-folder"
+    },
+    {
+      "id": "space-update",
+      "name": "3.4 Update Space",
+      "url": "{{baseUrl}}/owner/spaces/{{spaceId}}",
+      "method": "PUT",
+      "sortNum": 40300,
+      "created": "2025-12-05T00:00:00.000Z",
+      "modified": "2025-12-05T00:00:00.000Z",
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer {{token}}"
+        },
+        {
+          "name": "Accept",
+          "value": "application/json"
+        },
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "params": [],
+      "body": {
+        "type": "json",
+        "raw": "{\n  \"name\": \"Phòng họp 01 - Updated\",\n  \"description\": \"Phòng họp 10 người, có TV 4K và bảng trắng.\",\n  \"capacity\": 10,\n  \"price_per_hour\": 150000\n}",
+        "form": []
+      },
+      "containerId": "space-folder"
+    },
+    {
+      "id": "space-delete",
+      "name": "3.5 Delete Space",
+      "url": "{{baseUrl}}/owner/spaces/{{spaceId}}",
+      "method": "DELETE",
+      "sortNum": 40400,
+      "created": "2025-12-05T00:00:00.000Z",
+      "modified": "2025-12-05T00:00:00.000Z",
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer {{token}}"
+        },
+        {
+          "name": "Accept",
+          "value": "application/json"
+        }
+      ],
+      "params": [],
+      "containerId": "space-folder"
+    },
+    {
+      "id": "space-amenities-get",
+      "name": "4.1 Get Space Amenities",
+      "url": "{{baseUrl}}/owner/spaces/{{spaceId}}/amenities",
+      "method": "GET",
+      "sortNum": 50000,
+      "created": "2025-12-05T00:00:00.000Z",
+      "modified": "2025-12-05T00:00:00.000Z",
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer {{token}}"
+        },
+        {
+          "name": "Accept",
+          "value": "application/json"
+        }
+      ],
+      "params": [],
+      "containerId": "space-amenities-folder"
+    },
+    {
+      "id": "space-amenities-update",
+      "name": "4.2 Update Space Amenities",
+      "url": "{{baseUrl}}/owner/spaces/{{spaceId}}/amenities",
+      "method": "PUT",
+      "sortNum": 50100,
+      "created": "2025-12-05T00:00:00.000Z",
+      "modified": "2025-12-05T00:00:00.000Z",
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer {{token}}"
+        },
+        {
+          "name": "Accept",
+          "value": "application/json"
+        },
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "params": [],
+      "body": {
+        "type": "json",
+        "raw": "{\n  \"amenity_ids\": [1, 2, 4]\n}",
+        "form": []
+      },
+      "containerId": "space-amenities-folder"
+    },
+    {
+      "id": "managers-list",
+      "name": "5.1 List Venue Managers",
+      "url": "{{baseUrl}}/owner/venues/{{venueId}}/managers",
+      "method": "GET",
+      "sortNum": 60000,
+      "created": "2025-12-05T00:00:00.000Z",
+      "modified": "2025-12-05T00:00:00.000Z",
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer {{token}}"
+        },
+        {
+          "name": "Accept",
+          "value": "application/json"
+        }
+      ],
+      "params": [],
+      "containerId": "managers-folder"
+    },
+    {
+      "id": "managers-add",
+      "name": "5.2 Add Manager to Venue",
+      "url": "{{baseUrl}}/owner/venues/{{venueId}}/managers",
+      "method": "POST",
+      "sortNum": 60100,
+      "created": "2025-12-05T00:00:00.000Z",
+      "modified": "2025-12-05T00:00:00.000Z",
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer {{token}}"
+        },
+        {
+          "name": "Accept",
+          "value": "application/json"
+        },
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "params": [],
+      "body": {
+        "type": "json",
+        "raw": "{\n  \"email\": \"manager@test.com\"\n}",
+        "form": []
+      },
+      "tests": [
+        {
+          "type": "set-env-var",
+          "custom": "json.data.id",
+          "action": "setto",
+          "value": "{{managerId}}"
+        }
+      ],
+      "containerId": "managers-folder"
+    },
+    {
+      "id": "managers-remove",
+      "name": "5.3 Remove Manager from Venue",
+      "url": "{{baseUrl}}/owner/venues/{{venueId}}/managers/{{managerId}}",
+      "method": "DELETE",
+      "sortNum": 60200,
+      "created": "2025-12-05T00:00:00.000Z",
+      "modified": "2025-12-05T00:00:00.000Z",
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer {{token}}"
+        },
+        {
+          "name": "Accept",
+          "value": "application/json"
+        }
+      ],
+      "params": [],
+      "containerId": "managers-folder"
+    },
+    {
+      "id": "public-venue",
+      "name": "6.1 Public Venue Detail",
+      "url": "{{baseUrl}}/venues/{{venueId}}",
+      "method": "GET",
+      "sortNum": 70000,
+      "created": "2025-12-05T00:00:00.000Z",
+      "modified": "2025-12-05T00:00:00.000Z",
+      "headers": [
+        {
+          "name": "Accept",
+          "value": "application/json"
+        }
+      ],
+      "params": [],
+      "containerId": "public-folder"
+    },
+    {
+      "id": "public-space",
+      "name": "6.2 Public Space Detail",
+      "url": "{{baseUrl}}/spaces/{{spaceId}}",
+      "method": "GET",
+      "sortNum": 70100,
+      "created": "2025-12-05T00:00:00.000Z",
+      "modified": "2025-12-05T00:00:00.000Z",
+      "headers": [
+        {
+          "name": "Accept",
+          "value": "application/json"
+        }
+      ],
+      "params": [],
+      "containerId": "public-folder"
+    }
+  ]
+}

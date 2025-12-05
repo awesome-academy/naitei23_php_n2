@@ -191,6 +191,13 @@ Route::middleware(['auth:sanctum'])
         Route::get('venues/{venue}/managers', [OwnerVenueManagerController::class, 'index']);
         Route::post('venues/{venue}/managers', [OwnerVenueManagerController::class, 'store']);
         Route::delete('venues/{venue}/managers/{user}', [OwnerVenueManagerController::class, 'destroy']);
+
+        // Booking Management (Owner/Manager)
+        Route::get('bookings', [\App\Http\Controllers\Owner\OwnerBookingController::class, 'index']);
+        Route::get('venues/{venue}/bookings', [\App\Http\Controllers\Owner\OwnerBookingController::class, 'bookingsByVenue']);
+        Route::get('spaces/{space}/bookings', [\App\Http\Controllers\Owner\OwnerBookingController::class, 'bookingsBySpace']);
+        Route::patch('bookings/{booking}/confirm', [\App\Http\Controllers\Owner\OwnerBookingController::class, 'confirm']);
+        Route::patch('bookings/{booking}/reject', [\App\Http\Controllers\Owner\OwnerBookingController::class, 'reject']);
     });
 
 Route::middleware('auth:sanctum')->get('/user', function (Request $request) {

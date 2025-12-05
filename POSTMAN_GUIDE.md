@@ -913,3 +913,346 @@ curl -X GET http://127.0.0.1:8000/api/bookings \
 curl -X DELETE http://127.0.0.1:8000/api/bookings/1 \
   -H "Authorization: Bearer $TOKEN"
 ```
+
+---
+
+## 📋 Module 2: Owner Booking Management APIs
+
+**Folder trong Postman:** `07 - Owner / Bookings`
+
+Tổng cộng **5 endpoints** cho owner/manager quản lý bookings:
+
+---
+
+### 1. List All Bookings (Owner)
+
+**Endpoint:** `GET /api/owner/bookings`
+
+**Query params (optional):**
+- `status=pending_confirmation` - Filter theo trạng thái
+- `venue_id=1` - Filter theo venue
+- `space_id=1` - Filter theo space
+- `date_from=2025-12-01` - Từ ngày
+- `date_to=2025-12-31` - Đến ngày
+- `page=1` - Pagination
+
+**Expected Response (200):**
+```json
+{
+  "success": true,
+  "data": {
+    "current_page": 1,
+    "data": [
+      {
+        "id": 10,
+        "user": {
+          "id": 7,
+          "full_name": "User A",
+          "email": "user@test.com"
+        },
+        "space": {
+          "id": 3,
+          "name": "Meeting Room 1",
+          "venue": {
+            "id": 1,
+            "name": "Coworking HUST"
+          }
+        },
+        "start_time": "2025-12-05T09:00:00.000000Z",
+        "end_time": "2025-12-05T11:00:00.000000Z",
+        "total_price": "200000.00",
+        "status": "pending_confirmation"
+      }
+    ],
+    "per_page": 15,
+    "total": 1
+  }
+}
+```
+
+**Test:**
+- Chỉ hiển thị bookings của venues/spaces mà owner sở hữu hoặc được gán làm manager
+- Filters hoạt động đúng
+- Pagination 15 items/page
+
+---
+
+### 2. Bookings By Venue
+
+**Endpoint:** `GET /api/owner/venues/{venue_id}/bookings`
+
+**Expected Response (200):**
+```json
+{
+  "success": true,
+  "data": {
+    "current_page": 1,
+    "data": [
+      {
+        "id": 1,
+        "space": {
+          "id": 1,
+          "name": "Phòng họp 201"
+        },
+        "user": {
+          "id": 2,
+          "full_name": "Owner Demo"
+        },
+        "start_time": "2025-12-08T09:00:00.000000Z",
+        "end_time": "2025-12-08T11:00:00.000000Z",
+        "status": "pending_confirmation"
+      }
+    ]
+  }
+}
+```
+
+**Authorization Test:**
+- Login với user không phải owner/manager của venue
+- Expected: 403 Forbidden
+
+---
+
+### 3. Bookings By Space (Calendar Format)
+
+**Endpoint:** `GET /api/owner/spaces/{space_id}/bookings`
+
+**Use case:** Dùng cho FE render calendar/timeline view
+
+**Expected Response (200):**
+```json
+{
+  "success": true,
+  "data": [
+    {
+      "id": 1,
+      "start": "2025-12-08T09:00:00+07:00",
+      "end": "2025-12-08T11:00:00+07:00",
+      "status": "pending_confirmation",
+      "total_price": "200000.00",
+      "user": {
+        "id": 2,
+        "name": "Owner Demo",
+        "email": "owner@workspace.com"
+      }
+    }
+  ]
+}
+```
+
+**Format notes:**
+- ISO8601 timestamps cho calendar libraries (FullCalendar, DayPilot...)
+- Sorted by start_time ascending
+
+---
+
+### 4. Confirm Booking
+
+**Endpoint:** `PATCH /api/owner/bookings/{booking_id}/confirm`
+
+**Expected Response (200):**
+```json
+{
+  "success": true,
+  "message": "Booking confirmed successfully",
+  "data": {
+    "id": 10,
+    "status": "confirmed",
+    "confirmed_at": "2025-12-06T08:12:21.000000Z",
+    "updated_at": "2025-12-06T08:12:21.000000Z"
+  }
+}
+```
+
+**Edge Cases:**
+
+1. **Booking already confirmed:**
+```
+Expected: 409 Conflict
+{
+  "success": false,
+  "message": "Booking cannot be confirmed (status changed or conflict)."
+}
+```
+
+2. **Concurrent confirm (race condition):**
+- 2 managers cùng confirm 1 booking
+- Atomic update đảm bảo chỉ 1 request thành công
+- Request còn lại nhận 409 Conflict
+
+3. **Unauthorized (not owner/manager):**
+```
+Expected: 403 Forbidden
+```
+
+---
+
+### 5. Reject Booking
+
+**Endpoint:** `PATCH /api/owner/bookings/{booking_id}/reject`
+
+**Expected Response (200):**
+```json
+{
+  "success": true,
+  "message": "Booking rejected successfully",
+  "data": {
+    "id": 10,
+    "status": "cancelled",
+    "updated_at": "2025-12-06T08:15:30.000000Z"
+  }
+}
+```
+
+**Edge Cases:**
+
+1. **Booking already cancelled/confirmed:**
+```
+Expected: 409 Conflict
+{
+  "success": false,
+  "message": "Booking cannot be rejected (status changed)."
+}
+```
+
+2. **Unauthorized:**
+```
+Expected: 403 Forbidden
+```
+
+---
+
+## 🎯 Owner Booking Management - Test Checklist
+
+- [ ] Owner list bookings chỉ của venues họ sở hữu
+- [ ] Manager list bookings của venues được gán
+- [ ] Filter by status hoạt động
+- [ ] Filter by date_from/date_to hoạt động
+- [ ] Filter by venue_id/space_id hoạt động
+- [ ] Pagination 15 items/page
+- [ ] Bookings by venue trả đúng data
+- [ ] Bookings by space format calendar-friendly
+- [ ] Confirm pending booking thành công
+- [ ] Confirm booking đã confirmed → 409
+- [ ] Reject pending booking thành công
+- [ ] Reject booking đã cancelled → 409
+- [ ] User không phải owner/manager → 403
+
+---
+
+## 🔥 Quick Test Script (Owner Module)
+
+```bash
+# 1. Login as owner
+TOKEN=$(curl -s -X POST http://127.0.0.1:8000/api/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{"email":"owner@workspace.com","password":"password"}' \
+  | jq -r '.data.token')
+
+# 2. List all bookings (with filters)
+curl -X GET "http://127.0.0.1:8000/api/owner/bookings?status=pending_confirmation&date_from=2025-12-01" \
+  -H "Authorization: Bearer $TOKEN"
+
+# 3. Get bookings by venue
+curl -X GET http://127.0.0.1:8000/api/owner/venues/1/bookings \
+  -H "Authorization: Bearer $TOKEN"
+
+# 4. Get bookings by space (calendar format)
+curl -X GET http://127.0.0.1:8000/api/owner/spaces/1/bookings \
+  -H "Authorization: Bearer $TOKEN"
+
+# 5. Confirm booking
+curl -X PATCH http://127.0.0.1:8000/api/owner/bookings/1/confirm \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Accept: application/json"
+
+# 6. Reject booking
+curl -X PATCH http://127.0.0.1:8000/api/owner/bookings/2/reject \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Accept: application/json"
+```
+
+---
+
+## 📊 Business Logic Summary (Module 2)
+
+### Authorization Rules
+- **Owner:** Có thể manage bookings của tất cả venues họ sở hữu (`venue.owner_id = user.id`)
+- **Manager:** Có thể manage bookings của venues được gán (`venue_managers.user_id = user.id`)
+- **Other users:** 403 Forbidden
+
+### Atomic Update Strategy
+```php
+// Đảm bảo chỉ confirm khi status vẫn là pending
+$updated = Booking::where('id', $id)
+    ->where('status', 'pending_confirmation')
+    ->update(['status' => 'confirmed', 'confirmed_at' => now()]);
+
+if ($updated === 0) {
+    return 409; // Conflict - status đã thay đổi
+}
+```
+
+### Event Hooks
+- `BookingConfirmed` event → Trigger email/SMS notification
+- `BookingRejected` event → Notify user booking bị reject
+- Frontend có thể subscribe qua WebSocket/Pusher
+
+---
+
+## 💡 Tips khi demo Owner Booking APIs
+
+### Scenario 1: Owner quản lý bookings
+> "Owner login → Xem list bookings pending → Filter theo venue → Confirm booking → User nhận notification"
+
+### Scenario 2: Manager được gán
+> "Manager login → Chỉ thấy bookings của venues được gán → Confirm/reject với quyền tương tự owner"
+
+### Scenario 3: Race condition handling
+> "2 managers cùng click Confirm → Atomic update đảm bảo chỉ 1 thành công → Còn lại nhận 409 Conflict → FE refresh list"
+
+### Scenario 4: Calendar view
+> "Owner xem space calendar → API trả format ISO8601 → FE render timeline → Click vào event → Show booking detail"
+
+---
+
+## 🚨 Common Errors (Owner Module)
+
+### **403 Forbidden**
+**Nguyên nhân:** User không phải owner/manager của venue
+**Demo nói:**
+> "BookingPolicy check: user phải là owner hoặc manager được gán. User này không có quyền."
+
+### **409 Conflict**
+**Nguyên nhân:** Booking status đã thay đổi (race condition)
+**Demo nói:**
+> "Atomic update phát hiện status không còn pending. Có thể manager khác đã confirm trước đó. FE cần refresh."
+
+---
+
+## 📈 Performance Notes
+
+### Indexes đã thêm:
+```sql
+-- Tăng tốc filter by space + time
+INDEX (space_id, start_time, end_time)
+
+-- Tăng tốc filter by status
+INDEX (status)
+```
+
+### N+1 Query Prevention:
+```php
+// Eager load relationships
+Booking::with(['space.venue', 'user'])->forOwner($user)->get();
+```
+
+---
+
+**Tổng kết Module 2:**
+- ✅ 5 endpoints owner/manager management
+- ✅ Authorization với Policy (owner + manager)
+- ✅ Atomic updates (race condition safe)
+- ✅ Event hooks (notification ready)
+- ✅ Calendar-friendly format
+- ✅ Performance optimized (indexes + eager loading)

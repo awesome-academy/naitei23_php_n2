@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use App\Models\User;
 
 /**
  * @property integer $id
@@ -97,5 +98,18 @@ class Booking extends Model
     public function scopeOwnedBy($query, $userId)
     {
         return $query->where('user_id', $userId);
+    }
+
+    /**
+     * Scope để lọc bookings của owner/manager.
+     */
+    public function scopeForOwner($query, User $user)
+    {
+        return $query->whereHas('space.venue', function ($q) use ($user) {
+            $q->where('owner_id', $user->id)
+              ->orWhereHas('managers', function ($q2) use ($user) {
+                  $q2->where('user_id', $user->id);
+              });
+        });
     }
 }

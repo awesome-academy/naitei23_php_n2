@@ -16,6 +16,7 @@ use App\Http\Controllers\PublicVenueController;
 use App\Http\Controllers\PublicSpaceController;
 
 use App\Http\Controllers\RecommendationController;
+use App\Http\Controllers\MapController;
 
 /*
 |--------------------------------------------------------------------------
@@ -27,6 +28,28 @@ use App\Http\Controllers\RecommendationController;
 | be assigned to the "api" middleware group. Make something great!
 |
 */
+
+/*
+|--------------------------------------------------------------------------
+| Map Routes (Public - Google Maps Integration)
+|--------------------------------------------------------------------------
+*/
+Route::prefix('map')->group(function () {
+    // Get map configuration (center, zoom, bounds)
+    Route::get('/config', [MapController::class, 'config']);
+    
+    // Get all venue markers for map
+    Route::get('/venues', [MapController::class, 'venues']);
+    
+    // Get venues within map bounds (viewport)
+    Route::get('/venues/bounds', [MapController::class, 'venuesByBounds']);
+    
+    // Get venue detail for info window popup
+    Route::get('/venues/{id}', [MapController::class, 'venueDetail']);
+    
+    // Search venues on map
+    Route::get('/search', [MapController::class, 'search']);
+});
 
 /*
 |--------------------------------------------------------------------------

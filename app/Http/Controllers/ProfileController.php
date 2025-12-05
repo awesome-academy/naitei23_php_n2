@@ -14,12 +14,12 @@ class ProfileController extends Controller
     public function show()
     {
         $user = Auth::user();
-        
+
         if (!$user) {
             // Nếu chưa login, tạo user demo hoặc redirect
             return redirect('/auto-login');
         }
-        
+
         return view('profile.show', compact('user'));
     }
 
@@ -29,7 +29,7 @@ class ProfileController extends Controller
     public function edit()
     {
         $user = Auth::user();
-        
+
         if (!$user) {
             return redirect('/auto-login');
         }
@@ -43,11 +43,11 @@ class ProfileController extends Controller
     public function update(Request $request)
     {
         $user = Auth::user();
-        
+
         if (!$user) {
             return redirect('/auto-login');
         }
-        
+
         // Validate dữ liệu
         $validated = $request->validate([
             'full_name' => 'required|string|max:255',
@@ -57,28 +57,27 @@ class ProfileController extends Controller
             'avatar' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
             'locale' => 'nullable|in:en,vi',
         ]);
-        
+
         // Xử lý upload avatar
         if ($request->hasFile('avatar')) {
             // Xóa avatar cũ nếu có
             if ($user->profile_avatar_url && Storage::disk('public')->exists($user->profile_avatar_url)) {
                 Storage::disk('public')->delete($user->profile_avatar_url);
             }
-            
+
             // Lưu avatar mới
             $avatarPath = $request->file('avatar')->store('avatars', 'public');
             $user->profile_avatar_url = $avatarPath;
         }
-        
+
         // Cập nhật thông tin
         $user->full_name = $validated['full_name'];
         $user->email = $validated['email'];
         $user->phone_number = $validated['phone_number'] ?? $user->phone_number;
         $user->bio = $validated['bio'] ?? $user->bio;
-        $user->locale = $validated['locale'] ?? $user->locale;
-        
+
         $user->save();
-        
+
         return redirect()->route('profile.show')
             ->with('success', 'Profile updated successfully!');
     }

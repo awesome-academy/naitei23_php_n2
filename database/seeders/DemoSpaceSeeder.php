@@ -6,6 +6,7 @@ use Illuminate\Database\Seeder;
 use App\Models\Venue;
 use App\Models\Space;
 use App\Models\SpaceType;
+use App\Models\Amenity;
 
 class DemoSpaceSeeder extends Seeder
 {
@@ -30,6 +31,9 @@ class DemoSpaceSeeder extends Seeder
         $meetingRoomType = SpaceType::where('type_name', 'Meeting Room')->first();
         $coworkingType = SpaceType::where('type_name', 'Co-working Space')->first();
         $privateOfficeType = SpaceType::where('type_name', 'Private Office')->first();
+
+        // Get amenities for random assignment
+        $allAmenities = Amenity::all()->pluck('id')->toArray();
 
         // Get all venues
         $venues = Venue::all();
@@ -149,7 +153,21 @@ class DemoSpaceSeeder extends Seeder
             }
         }
 
+        // Attach 4-5 random amenities to each space
+        if (!empty($allAmenities)) {
+            $spaces = Space::all();
+            foreach ($spaces as $space) {
+                $randomCount = rand(4, 5);
+                $randomAmenities = array_rand(array_flip($allAmenities), min($randomCount, count($allAmenities)));
+                if (!is_array($randomAmenities)) {
+                    $randomAmenities = [$randomAmenities];
+                }
+                $space->amenities()->sync($randomAmenities);
+            }
+            $this->command->info("✅ Attached amenities to all spaces");
+        }
+
         $totalSpaces = Space::count();
-        $this->command->info("✅ Created spaces for 3 venues (Total: $totalSpaces spaces)");
+        $this->command->info("✅ Created spaces for " . count($venues) . " venues (Total: {$totalSpaces} spaces)");
     }
 }

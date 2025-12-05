@@ -22,9 +22,13 @@ return new class extends Migration
             $table->boolean('is_verified')->nullable()->default(false);
             $table->string('verification_token', 100)->nullable();
             $table->string('password_reset_token', 100)->nullable();
+            $table->string('avatar')->nullable();
+            $table->string('phone')->nullable();
+            $table->text('bio')->nullable();
+            $table->string('address')->nullable();
+            $table->date('date_of_birth')->nullable();
             $table->timestamp('created_at')->useCurrent();
             $table->timestamp('updated_at')->useCurrentOnUpdate()->useCurrent();
-            $table->string('avatar')->nullable();
         });
     }
 

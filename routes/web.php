@@ -21,28 +21,39 @@ Route::get('/', function () {
 Route::get('/register', [AuthController::class, 'create']);
 Route::post('/register', [AuthController::class, 'store']);
 
-// AUTO-LOGIN ĐỂ TEST (THÊM VÀO) - from view-fix-avatar branch
+// AUTO-LOGIN routes for testing
 Route::get('/auto-login', function () {
-    $user = \App\Models\User::first();
-    
+    $user = \App\Models\User::where('email', 'owner@workspace.com')->first();
+
     if (!$user) {
-        $user = \App\Models\User::create([
-            'full_name' => 'Demo User',
-            'email' => 'demo@gmail.com',
-            'password_hash' => bcrypt('123456'),
-            'phone_number' => '0123456789',
-            'is_active' => true,
-            'is_verified' => true,
-        ]);
+        $user = \App\Models\User::first();
     }
-    
+
     Auth::login($user);
     session()->regenerate();
-    
-    return redirect()->route('profile.show');
+
+    return redirect()->route('api.test');
 });
 
-// Login routes (merge both versions)
+Route::get('/auto-login/owner', function () {
+    $user = \App\Models\User::where('email', 'owner@workspace.com')->first();
+    if ($user) {
+        Auth::login($user);
+        session()->regenerate();
+        return redirect()->route('api.test')->with('success', 'Logged in as Owner');
+    }
+    return redirect('/')->with('error', 'Owner user not found');
+});
+
+Route::get('/auto-login/admin', function () {
+    $user = \App\Models\User::where('email', 'admin@workspace.com')->first();
+    if ($user) {
+        Auth::login($user);
+        session()->regenerate();
+        return redirect('/')->with('success', 'Logged in as Admin');
+    }
+    return redirect('/')->with('error', 'Admin user not found');
+});// Login routes (merge both versions)
 Route::get('/login', function () {
     return view('auth.login');
 })->name('login');
@@ -52,12 +63,12 @@ Route::post('/login', function (\Illuminate\Http\Request $request) {
         'email' => 'required|email',
         'password' => 'required|string',
     ]);
-    
+
     if (Auth::attempt($credentials)) {
         $request->session()->regenerate();
         return redirect()->route('profile.show');
     }
-    
+
     return back()->withErrors(['email' => 'Invalid credentials']);
 });
 
@@ -69,6 +80,20 @@ Route::post('/login', function (\Illuminate\Http\Request $request) {
 Route::get('/profile', [ProfileController::class, 'show'])->name('profile.show');
 Route::get('/profile/edit', [ProfileController::class, 'edit'])->name('profile.edit');
 Route::put('/profile/update', [ProfileController::class, 'update'])->name('profile.update');
+
+// API Testing Dashboard
+Route::get('/api-test', function () {
+    if (!Auth::check()) {
+        return redirect('/auto-login');
+    }
+
+    // Store token in session for frontend
+    $user = Auth::user();
+    $token = $user->createToken('api-test')->plainTextToken;
+    session(['api_token' => $token]);
+
+    return view('api-test');
+})->name('api.test');
 
 // Admin routes (tạm comment nếu chưa cần)
 // Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () {

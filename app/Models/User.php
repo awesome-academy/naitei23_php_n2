@@ -114,32 +114,6 @@ class User extends Authenticatable
     }
 
     /**
-     * Check if user has a specific role
-     */
-    public function hasRole($role)
-    {
-        return $this->roles()->where('name', $role)->exists();
-    }
-
-    /**
-     * Check if user is admin
-     */
-    public function isAdmin()
-    {
-        return $this->hasRole('admin');
-    }
-
-    /**
-     * Check if user is moderator
-     */
-    public function isModerator()
-    {
-        return $this->hasRole('moderator');
-    }
-
-
-
-    /**
      * Các booking mà user này đã tạo.
      */
     public function bookings()
@@ -171,14 +145,24 @@ class User extends Authenticatable
     }
 
     /**
-     * Check if user has any of the given roles
+     * Check if user has a specific role
      *
-     * @param array $roleName
+     * @param string $roleName
      * @return bool
      */
     public function hasRole(string $roleName): bool
     {
         return $this->roles()->where('role_name', $roleName)->exists();
+    }
+
+    /**
+     * Check if user is admin
+     *
+     * @return bool
+     */
+    public function isAdmin(): bool
+    {
+        return $this->hasRole('admin');
     }
 
     /**
@@ -243,7 +227,7 @@ class User extends Authenticatable
 
     //public function venue_managers()
 
-    /** 
+    /**
      * Các venue mà user này là manager (qua bảng venue_managers).
      */
     public function managedVenues()
@@ -259,13 +243,4 @@ class User extends Authenticatable
         return $this->hasMany(Venue::class, 'owner_id');
     }
 
-    /**
-     * Kiểm tra user có phải admin không.
-     */
-    public function isAdmin(): bool
-    {
-        return $this->roles()
-            ->where('role_name', 'admin')
-            ->exists();
-    }
 }

@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create('users', function (Blueprint $table) {
             $table->bigInteger('id', true);
-            $table->string('full_name');
+            $table->string('full_name')->nullable();
             $table->string('email')->unique('email');
             $table->string('password_hash');
             $table->string('phone_number', 20)->nullable();
@@ -24,6 +24,7 @@ return new class extends Migration
             $table->string('password_reset_token', 100)->nullable();
             $table->timestamp('created_at')->useCurrent();
             $table->timestamp('updated_at')->useCurrentOnUpdate()->useCurrent();
+            $table->string('avatar')->nullable();
         });
     }
 

@@ -78,6 +78,66 @@ class User extends Authenticatable
     {
         return $this->password_hash;
     }
+    public function getNameAttribute()
+    {
+        return $this->full_name;
+    }
+
+    // Mutator for name
+    public function setNameAttribute($value)
+    {
+        $this->attributes['full_name'] = $value;
+    }
+
+    // Accessor for phone (compatibility)
+    public function getPhoneAttribute()
+    {
+        return $this->phone_number;
+    }
+
+    // Mutator for phone
+    public function setPhoneAttribute($value)
+    {
+        $this->attributes['phone_number'] = $value;
+    }
+
+    // Accessor for avatar (compatibility)
+    public function getAvatarAttribute()
+    {
+        return $this->profile_avatar_url;
+    }
+
+    // Mutator for avatar
+    public function setAvatarAttribute($value)
+    {
+        $this->attributes['profile_avatar_url'] = $value;
+    }
+
+    /**
+     * Check if user has a specific role
+     */
+    public function hasRole($role)
+    {
+        return $this->roles()->where('name', $role)->exists();
+    }
+
+    /**
+     * Check if user is admin
+     */
+    public function isAdmin()
+    {
+        return $this->hasRole('admin');
+    }
+
+    /**
+     * Check if user is moderator
+     */
+    public function isModerator()
+    {
+        return $this->hasRole('moderator');
+    }
+
+
 
     public function bookings()
     {

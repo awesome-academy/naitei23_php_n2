@@ -153,7 +153,7 @@ class ApiChecklistCommand extends Command
 
         // Summary
         $this->info("\n╔══════════════════════════════════════╗");
-        $this->info("║          SUMMARY                    ║");
+        $this->info("║          SUMMARY                     ║");
         $this->info("╚══════════════════════════════════════╝\n");
 
         $total = count($results);

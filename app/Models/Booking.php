@@ -39,6 +39,7 @@ class Booking extends Model
         'end_time',
         'total_price',
         'status',
+        'note',
     ];
 
     protected $casts = [
@@ -88,5 +89,13 @@ class Booking extends Model
     public function bookingServices(): HasMany
     {
         return $this->hasMany(BookingService::class);
+    }
+
+    /**
+     * Scope để lọc bookings của user cụ thể.
+     */
+    public function scopeOwnedBy($query, $userId)
+    {
+        return $query->where('user_id', $userId);
     }
 }

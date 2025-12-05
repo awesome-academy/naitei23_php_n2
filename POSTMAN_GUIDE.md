@@ -604,3 +604,312 @@ Workspace Booking - Owner API/
 **Chúc bạn demo thành công!** 🚀
 
 _Nếu gặp lỗi, check API_CHECKLIST_RESULTS.md để xem chi tiết implementation._
+# Booking API Testing Guide
+
+## 🎯 Module 1: Booking Core APIs
+
+Tổng cộng **4 endpoints** cho user booking core:
+
+### 1. Chuẩn bị
+1. Login để lấy token:
+```http
+POST /api/auth/login
+Content-Type: application/json
+
+{
+  "email": "owner@workspace.com",
+  "password": "password"
+}
+```
+
+Response:
+```json
+{
+  "success": true,
+  "message": "Login successful",
+  "data": {
+    "user": { ... },
+    "token": "1|xxxxxxxxxxxxx"
+  }
+}
+```
+
+2. Set header cho tất cả requests sau:
+```
+Authorization: Bearer 1|xxxxxxxxxxxxx
+Accept: application/json
+```
+
+---
+
+### 2. Tạo Booking Mới
+
+**Endpoint:** `POST /api/bookings`
+
+**Body:**
+```json
+{
+  "space_id": 1,
+  "start_time": "2025-12-07 09:00:00",
+  "end_time": "2025-12-07 11:00:00",
+  "note": "Team meeting"
+}
+```
+
+**Expected Response (201):**
+```json
+{
+  "success": true,
+  "message": "Booking created successfully",
+  "data": {
+    "id": 1,
+    "user_id": 2,
+    "space_id": 1,
+    "start_time": "2025-12-07 09:00:00",
+    "end_time": "2025-12-07 11:00:00",
+    "total_price": "200000.00",
+    "status": "pending_confirmation",
+    "note": "Team meeting",
+    "created_at": "2025-12-06T10:30:00.000000Z",
+    "updated_at": "2025-12-06T10:30:00.000000Z",
+    "space": {
+      "id": 1,
+      "name": "Meeting Room A",
+      "venue": {
+        "id": 1,
+        "name": "Downtown Workspace"
+      }
+    }
+  }
+}
+```
+
+**Validation Tests:**
+
+1. **Missing fields:**
+```json
+{
+  "space_id": 1
+}
+```
+Expected: 422 với error messages về start_time và end_time required.
+
+2. **Past time:**
+```json
+{
+  "space_id": 1,
+  "start_time": "2020-01-01 09:00:00",
+  "end_time": "2020-01-01 11:00:00"
+}
+```
+Expected: 422 - "Start time must be in the future."
+
+3. **End before start:**
+```json
+{
+  "space_id": 1,
+  "start_time": "2025-12-07 11:00:00",
+  "end_time": "2025-12-07 09:00:00"
+}
+```
+Expected: 422 - "End time must be after start time."
+
+4. **Outside open hours:**
+```json
+{
+  "space_id": 1,
+  "start_time": "2025-12-07 06:00:00",
+  "end_time": "2025-12-07 08:00:00"
+}
+```
+Expected: 422 - "Booking time must be within space opening hours."
+
+5. **Overlapping booking:**
+- Tạo booking đầu tiên (09:00-11:00)
+- Tạo booking thứ 2 (10:00-12:00)
+
+Expected: 422 - "This time slot is already booked."
+
+---
+
+### 3. List Bookings của User
+
+**Endpoint:** `GET /api/bookings`
+
+**Query params (optional):**
+- `page=1` - Pagination
+
+**Expected Response (200):**
+```json
+{
+  "success": true,
+  "data": {
+    "current_page": 1,
+    "data": [
+      {
+        "id": 1,
+        "user_id": 2,
+        "space_id": 1,
+        "start_time": "2025-12-07 09:00:00",
+        "end_time": "2025-12-07 11:00:00",
+        "total_price": "200000.00",
+        "status": "pending_confirmation",
+        "note": "Team meeting",
+        "space": {
+          "id": 1,
+          "name": "Meeting Room A",
+          "venue": {
+            "id": 1,
+            "name": "Downtown Workspace"
+          }
+        }
+      }
+    ],
+    "per_page": 10,
+    "total": 1
+  }
+}
+```
+
+**Test:**
+- Chỉ hiển thị bookings của current user
+- Sắp xếp theo start_time desc (mới nhất lên đầu)
+- Pagination 10 items/page
+
+---
+
+### 4. Xem Chi Tiết Booking
+
+**Endpoint:** `GET /api/bookings/{id}`
+
+**Expected Response (200):**
+```json
+{
+  "success": true,
+  "data": {
+    "id": 1,
+    "user_id": 2,
+    "space_id": 1,
+    "start_time": "2025-12-07 09:00:00",
+    "end_time": "2025-12-07 11:00:00",
+    "total_price": "200000.00",
+    "status": "pending_confirmation",
+    "note": "Team meeting",
+    "space": {
+      "id": 1,
+      "name": "Meeting Room A",
+      "capacity": 10,
+      "price_per_hour": "100000.00",
+      "venue": {
+        "id": 1,
+        "name": "Downtown Workspace",
+        "address": "123 Main St"
+      }
+    }
+  }
+}
+```
+
+**Authorization Test:**
+- Login với user khác (manager1@workspace.com / password)
+- GET /api/bookings/1 (booking của owner)
+
+Expected: 403 Forbidden
+
+---
+
+### 5. Hủy Booking
+
+**Endpoint:** `DELETE /api/bookings/{id}`
+
+**Expected Response (200):**
+```json
+{
+  "success": true,
+  "message": "Booking cancelled successfully"
+}
+```
+
+**Test Cases:**
+
+1. **Cancel pending booking:** ✅ Success
+2. **Cancel confirmed booking:**
+```
+Expected: 422 - "Only pending bookings can be cancelled."
+```
+3. **Cancel booking của user khác:**
+```
+Expected: 403 Forbidden
+```
+
+---
+
+## 📊 Business Logic Summary
+
+### Price Calculation
+- **Duration < 24h:** Dùng `price_per_hour` × số giờ (làm tròn lên)
+- **Duration >= 24h:** Dùng `price_per_day` × số ngày (làm tròn lên)
+- **Duration >= 30 days:** Dùng `price_per_month` × số tháng (làm tròn lên)
+
+### Status Flow
+```
+pending_confirmation → awaiting_payment → confirmed → completed
+                    ↓
+                 cancelled
+```
+
+### Validation Rules
+1. ✅ Start time phải sau hiện tại
+2. ✅ End time phải sau start time
+3. ✅ Booking time phải trong open_hour - close_hour
+4. ✅ Không được trùng với booking confirmed/awaiting_payment
+5. ✅ Space phải tồn tại (exists:spaces,id)
+
+---
+
+## 🎯 Test Checklist
+
+- [ ] Tạo booking thành công với data hợp lệ
+- [ ] Validate các field required
+- [ ] Validate time phải trong tương lai
+- [ ] Validate open hours
+- [ ] Validate overlap bookings
+- [ ] Tính giá đúng (hour/day/month)
+- [ ] List bookings chỉ của current user
+- [ ] Pagination hoạt động
+- [ ] View booking detail
+- [ ] 403 khi view booking của người khác
+- [ ] Cancel booking thành công
+- [ ] 422 khi cancel booking không phải pending
+- [ ] 403 khi cancel booking của người khác
+
+---
+
+## 🔥 Quick Test Script
+
+```bash
+# 1. Login
+TOKEN=$(curl -s -X POST http://127.0.0.1:8000/api/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{"email":"owner@workspace.com","password":"password"}' \
+  | jq -r '.data.token')
+
+# 2. Create booking
+curl -X POST http://127.0.0.1:8000/api/bookings \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "space_id": 1,
+    "start_time": "2025-12-07 09:00:00",
+    "end_time": "2025-12-07 11:00:00",
+    "note": "Test booking"
+  }'
+
+# 3. List bookings
+curl -X GET http://127.0.0.1:8000/api/bookings \
+  -H "Authorization: Bearer $TOKEN"
+
+# 4. Cancel booking
+curl -X DELETE http://127.0.0.1:8000/api/bookings/1 \
+  -H "Authorization: Bearer $TOKEN"
+```

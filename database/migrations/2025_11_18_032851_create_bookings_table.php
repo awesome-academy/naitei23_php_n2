@@ -19,6 +19,7 @@ return new class extends Migration
             $table->dateTime('end_time');
             $table->decimal('total_price', 10);
             $table->enum('status', ['pending_confirmation', 'awaiting_payment', 'confirmed', 'cancelled', 'completed'])->default('pending_confirmation');
+            $table->text('note')->nullable();
             $table->timestamp('created_at')->useCurrent();
             $table->timestamp('updated_at')->useCurrentOnUpdate()->useCurrent();
         });

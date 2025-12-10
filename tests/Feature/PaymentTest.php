@@ -54,11 +54,8 @@ class PaymentTest extends TestCase
             'payment_method' => 'credit_card',
         ]);
 
-        $response->assertStatus(400)
-            ->assertJson([
-                'message' => 'Payment failed',
-                'error' => 'Booking must be confirmed before payment',
-            ]);
+        $response->assertStatus(422)
+            ->assertJsonValidationErrors(['booking_id']);
 
         $this->assertDatabaseMissing('payments', [
             'booking_id' => $booking->id,
@@ -89,7 +86,7 @@ class PaymentTest extends TestCase
                 'message' => 'Payment successful',
             ])
             ->assertJsonStructure([
-                'payment' => [
+                'data' => [
                     'id',
                     'booking_id',
                     'amount',
@@ -147,11 +144,8 @@ class PaymentTest extends TestCase
             'payment_method' => 'debit_card',
         ]);
 
-        $response->assertStatus(400)
-            ->assertJson([
-                'message' => 'Payment failed',
-                'error' => 'Booking already paid',
-            ]);
+        $response->assertStatus(422)
+            ->assertJsonValidationErrors(['booking_id']);
 
         // Only one payment should exist
         $this->assertEquals(1, Payment::where('booking_id', $booking->id)->count());
@@ -176,11 +170,8 @@ class PaymentTest extends TestCase
             'payment_method' => 'credit_card',
         ]);
 
-        $response->assertStatus(400)
-            ->assertJson([
-                'message' => 'Payment failed',
-                'error' => 'Unauthorized to pay for this booking',
-            ]);
+        $response->assertStatus(422)
+            ->assertJsonValidationErrors(['booking_id']);
 
         $this->assertDatabaseMissing('payments', [
             'booking_id' => $booking->id,

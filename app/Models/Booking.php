@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasOne;
@@ -26,10 +27,13 @@ use App\Models\User;
  */
 class Booking extends Model
 {
+    use HasFactory;
+
     // Trạng thái booking (ENUM trong DB)
     public const STATUS_PENDING_CONFIRMATION = 'pending_confirmation';
     public const STATUS_AWAITING_PAYMENT     = 'awaiting_payment';
     public const STATUS_CONFIRMED            = 'confirmed';
+    public const STATUS_PAID                 = 'paid';
     public const STATUS_CANCELLED            = 'cancelled';
     public const STATUS_COMPLETED            = 'completed';
 
@@ -41,12 +45,14 @@ class Booking extends Model
         'total_price',
         'status',
         'note',
+        'paid_at',
     ];
 
     protected $casts = [
         'start_time'  => 'datetime',
         'end_time'    => 'datetime',
         'total_price' => 'decimal:2',
+        'paid_at'     => 'datetime',
         'created_at'  => 'datetime',
         'updated_at'  => 'datetime',
     ];
@@ -73,6 +79,14 @@ class Booking extends Model
     public function payment(): HasOne
     {
         return $this->hasOne(Payment::class);
+    }
+
+    /**
+     * All payments for this booking.
+     */
+    public function payments(): HasMany
+    {
+        return $this->hasMany(Payment::class);
     }
 
     /**

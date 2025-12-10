@@ -113,12 +113,17 @@ Route::prefix('auth')->group(function () {
 |--------------------------------------------------------------------------
 */
 use App\Http\Controllers\Api\BookingController;
+use App\Http\Controllers\Api\PaymentController;
 
 Route::middleware('auth:sanctum')->group(function () {
     Route::get('/bookings', [BookingController::class, 'index']);
     Route::post('/bookings', [BookingController::class, 'store']);
     Route::get('/bookings/{booking}', [BookingController::class, 'show']);
     Route::delete('/bookings/{booking}', [BookingController::class, 'destroy']);
+    
+    // Payment routes
+    Route::post('/payments', [PaymentController::class, 'store']);
+    Route::get('/payments', [PaymentController::class, 'index']);
 });
 
 /*

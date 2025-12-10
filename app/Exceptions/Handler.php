@@ -27,4 +27,18 @@ class Handler extends ExceptionHandler
             //
         });
     }
+
+    /**
+     * Render an exception into an HTTP response.
+     * Force JSON response for API routes.
+     */
+    public function render($request, Throwable $e)
+    {
+        // Force JSON response for API routes
+        if ($request->is('api/*')) {
+            $request->headers->set('Accept', 'application/json');
+        }
+
+        return parent::render($request, $e);
+    }
 }

@@ -13,10 +13,15 @@ class BookingService
 {
     /**
      * Tạo booking mới với validation đầy đủ.
+     *
+     * @param User $user
+     * @param array $data
+     * @param bool $autoConfirm If true, set status to 'confirmed' (for testing/dev)
+     * @return Booking
      */
-    public function create(User $user, array $data): Booking
+    public function create(User $user, array $data, bool $autoConfirm = false): Booking
     {
-        return DB::transaction(function () use ($user, $data) {
+        return DB::transaction(function () use ($user, $data, $autoConfirm) {
             $space = Space::with('venue')->findOrFail($data['space_id']);
 
             $start = Carbon::parse($data['start_time']);
@@ -31,6 +36,11 @@ class BookingService
             // Tính tổng tiền
             $totalPrice = $this->calculatePrice($space, $start, $end);
 
+            // Determine initial status
+            $status = $autoConfirm
+                ? Booking::STATUS_CONFIRMED
+                : Booking::STATUS_PENDING_CONFIRMATION;
+
             // Tạo booking
             $booking = Booking::create([
                 'user_id'     => $user->id,
@@ -38,8 +48,9 @@ class BookingService
                 'start_time'  => $start,
                 'end_time'    => $end,
                 'total_price' => $totalPrice,
-                'status'      => Booking::STATUS_PENDING_CONFIRMATION,
+                'status'      => $status,
                 'note'        => $data['note'] ?? null,
+                'confirmed_at' => $autoConfirm ? now() : null,
             ]);
 
             return $booking->load('space.venue');
@@ -48,7 +59,7 @@ class BookingService
 
     /**
      * Hủy booking (cancel before making payment).
-     * 
+     *
      * Rules:
      * - Cannot cancel if booking has successful payment
      * - Can only cancel if status is pending_confirmation or confirmed
@@ -134,7 +145,7 @@ class BookingService
 
     /**
      * Tính tổng tiền dựa trên duration và price của space.
-     * 
+     *
      * Space có 3 loại giá: price_per_hour, price_per_day, price_per_month
      * Tự động chọn loại giá phù hợp nhất.
      */

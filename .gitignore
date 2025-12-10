@@ -19,3 +19,5 @@ yarn-error.log
 /.vscode
 POSTMAN_GUIDE.md
 /postman
+/*.md
+demo.sh

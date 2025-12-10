@@ -19,7 +19,7 @@ class PaymentController extends Controller
 
     /**
      * Process payment for a booking
-     * 
+     *
      * @param StorePaymentRequest $request
      * @return JsonResponse
      * @throws ValidationException
@@ -41,7 +41,7 @@ class PaymentController extends Controller
 
     /**
      * List all payments for authenticated user
-     * 
+     *
      * @return JsonResponse
      */
     public function index(): JsonResponse

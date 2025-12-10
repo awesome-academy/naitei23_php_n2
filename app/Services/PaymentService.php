@@ -11,7 +11,7 @@ class PaymentService
 {
     /**
      * Process payment for a booking
-     * 
+     *
      * @param int $bookingId
      * @param int $userId
      * @param string $paymentMethod
@@ -81,7 +81,7 @@ class PaymentService
 
     /**
      * List all payments for a user
-     * 
+     *
      * @param int $userId
      * @return \Illuminate\Database\Eloquent\Collection
      */

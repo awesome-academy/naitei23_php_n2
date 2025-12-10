@@ -24,6 +24,7 @@ class StoreBookingRequest extends FormRequest
             'start_time' => ['required', 'date', 'after:now'],
             'end_time'   => ['required', 'date', 'after:start_time'],
             'note'       => ['nullable', 'string', 'max:1000'],
+            'auto_confirm' => ['sometimes', 'boolean'], // For testing only
         ];
     }
 

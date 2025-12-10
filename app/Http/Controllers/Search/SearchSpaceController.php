@@ -64,18 +64,7 @@ class SearchSpaceController extends Controller
             $start = Carbon::parse($data['start_time']);
             $end = Carbon::parse($data['end_time']);
 
-            // Exclude spaces with overlapping bookings
-            $query->whereDoesntHave('bookings', function ($q) use ($start, $end) {
-                $q->whereIn('status', [
-                    'pending_confirmation',
-                    'awaiting_payment',
-                    'confirmed',
-                ])->where(function ($qOverlap) use ($start, $end) {
-                    // Overlap condition: booking.start < search.end AND booking.end > search.start
-                    $qOverlap->where('start_time', '<', $end)
-                             ->where('end_time', '>', $start);
-                });
-            });
+            $query->availableBetween($start, $end);
         }
 
         // Only show spaces from approved venues

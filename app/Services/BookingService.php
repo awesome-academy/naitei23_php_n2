@@ -47,20 +47,44 @@ class BookingService
     }
 
     /**
-     * Hủy booking (chỉ pending mới được hủy).
+     * Hủy booking (cancel before making payment).
+     * 
+     * Rules:
+     * - Cannot cancel if booking has successful payment
+     * - Can only cancel if status is pending_confirmation or confirmed
+     * - User must own the booking (checked in controller policy)
      */
     public function cancel(Booking $booking): void
     {
-        if (!in_array($booking->status, [
-            Booking::STATUS_PENDING_CONFIRMATION,
-        ])) {
+        // 1. Check if booking has successful payment
+        $hasSuccessPayment = $booking->payments()
+            ->where('transaction_status', \App\Models\Payment::STATUS_SUCCESS)
+            ->exists();
+
+        if ($hasSuccessPayment) {
             throw ValidationException::withMessages([
-                'booking' => 'Only pending bookings can be cancelled.',
+                'booking' => 'Paid booking cannot be cancelled.',
             ]);
         }
 
+        // 2. Only allow cancel for pending or confirmed bookings
+        if (!in_array($booking->status, [
+            Booking::STATUS_PENDING_CONFIRMATION,
+            Booking::STATUS_CONFIRMED,
+        ], true)) {
+            throw ValidationException::withMessages([
+                'booking' => 'Only pending or confirmed bookings can be cancelled.',
+            ]);
+        }
+
+        // 3. Update status to cancelled
         $booking->status = Booking::STATUS_CANCELLED;
         $booking->save();
+
+        // 4. Emit event if exists
+        if (class_exists(\App\Events\BookingCancelled::class)) {
+            event(new \App\Events\BookingCancelled($booking));
+        }
     }
 
     /**

@@ -5,6 +5,7 @@ namespace Database\Seeders;
 use Illuminate\Database\Seeder;
 use App\Models\User;
 use App\Models\Venue;
+use App\Models\Role;
 use Illuminate\Support\Facades\Hash;
 
 class DemoVenueSeeder extends Seeder
@@ -19,9 +20,17 @@ class DemoVenueSeeder extends Seeder
             ['email' => 'owner@workspace.com'],
             [
                 'full_name' => 'Owner Demo',
-                'password_hash' => Hash::make('password')
+                'password_hash' => Hash::make('password'),
+                'is_active' => true,
+                'is_verified' => true,
             ]
         );
+
+        // Assign owner role
+        $ownerRole = Role::firstOrCreate(['role_name' => 'owner']);
+        if (!$owner->roles()->where('role_name', 'owner')->exists()) {
+            $owner->roles()->attach($ownerRole->id);
+        }
 
         // Demo venues data
         $venues = [
@@ -61,12 +70,16 @@ class DemoVenueSeeder extends Seeder
         ];
 
         foreach ($venues as $venueData) {
-            Venue::firstOrCreate(
+            $venue = Venue::firstOrCreate(
                 ['name' => $venueData['name'], 'owner_id' => $owner->id],
                 $venueData
             );
+
+            // Attach random amenities to each venue (3-5 amenities)
+            $amenityIds = \App\Models\Amenity::inRandomOrder()->limit(rand(3, 5))->pluck('id')->toArray();
+            $venue->amenities()->syncWithoutDetaching($amenityIds);
         }
 
-        $this->command->info('✅ Created 3 demo venues for owner@workspace.com');
+        $this->command->info('✅ Created 3 demo venues for owner@workspace.com with amenities');
     }
 }

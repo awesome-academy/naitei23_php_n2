@@ -89,10 +89,13 @@ class VenueController extends Controller
     {
         $this->authorize('delete', $venue);
 
+        $venueId = $venue->id;
+        $venueName = $venue->name;
+
         $venue->delete();
 
         return response()->json([
-            'message' => 'Venue deleted successfully',
+            'message' => "Deleted venue '{$venueName}' with ID {$venueId}",
         ]);
     }
 }

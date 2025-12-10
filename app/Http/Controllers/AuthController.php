@@ -20,7 +20,7 @@ class AuthController extends Controller
 {
     /**
      * Format user data for API response
-     * 
+     *
      * @param User $user
      * @return array
      */
@@ -48,7 +48,7 @@ class AuthController extends Controller
     /**
      * Register a new user (automatically assigns 'user' role)
      * Sends verification email
-     * 
+     *
      * @param Request $request
      * @return JsonResponse
      */
@@ -120,7 +120,7 @@ class AuthController extends Controller
 
     /**
      * Login user and create token
-     * 
+     *
      * @param Request $request
      * @return JsonResponse
      */
@@ -137,9 +137,9 @@ class AuthController extends Controller
             if (!$user || !Hash::check($credentials['password'], $user->password_hash)) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'Thông tin đăng nhập không chính xác.',
+                    'message' => 'Invalid credentials.',
                     'errors' => [
-                        'email' => ['Thông tin đăng nhập không chính xác.']
+                        'email' => ['Invalid credentials.']
                     ],
                 ], 401);
             }
@@ -147,7 +147,7 @@ class AuthController extends Controller
             if (!$user->is_active) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'Tài khoản của bạn đã bị vô hiệu hóa.',
+                    'message' => 'Your account has been deactivated.',
                 ], 403);
             }
 
@@ -156,7 +156,7 @@ class AuthController extends Controller
             if (in_array('user', $userRoles) && !$user->is_verified) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'Tài khoản chưa được xác thực. Vui lòng kiểm tra email để xác thực.',
+                    'message' => 'Account not verified. Please check your email to verify your account.',
                     'require_verification' => true,
                 ], 403);
             }
@@ -172,7 +172,7 @@ class AuthController extends Controller
 
             return response()->json([
                 'success' => true,
-                'message' => 'Đăng nhập thành công!',
+                'message' => 'Login successful!',
                 'data' => [
                     'user' => $this->formatUserResponse($user),
                     'token' => $token,
@@ -196,7 +196,7 @@ class AuthController extends Controller
 
     /**
      * Logout user (revoke token)
-     * 
+     *
      * @param Request $request
      * @return JsonResponse
      */
@@ -221,7 +221,7 @@ class AuthController extends Controller
 
     /**
      * Get current authenticated user
-     * 
+     *
      * @param Request $request
      * @return JsonResponse
      */
@@ -240,7 +240,7 @@ class AuthController extends Controller
 
     /**
      * Generate a random password
-     * 
+     *
      * @param int $length
      * @return string
      */
@@ -251,19 +251,19 @@ class AuthController extends Controller
         $lowercase = 'abcdefghijklmnopqrstuvwxyz';
         $numbers = '0123456789';
         $special = '!@#$%^&*';
-        
+
         // Lấy ít nhất 1 ký tự từ mỗi loại
         $password = $uppercase[random_int(0, strlen($uppercase) - 1)];
         $password .= $lowercase[random_int(0, strlen($lowercase) - 1)];
         $password .= $numbers[random_int(0, strlen($numbers) - 1)];
         $password .= $special[random_int(0, strlen($special) - 1)];
-        
+
         // Điền phần còn lại
         $allChars = $uppercase . $lowercase . $numbers . $special;
         for ($i = 4; $i < $length; $i++) {
             $password .= $allChars[random_int(0, strlen($allChars) - 1)];
         }
-        
+
         // Xáo trộn mật khẩu
         return str_shuffle($password);
     }
@@ -271,7 +271,7 @@ class AuthController extends Controller
     /**
      * Reset password for user (only for users with 'user' role)
      * Generates a new password and sends it via email
-     * 
+     *
      * @param Request $request
      * @return JsonResponse
      */
@@ -294,7 +294,7 @@ class AuthController extends Controller
 
             // Kiểm tra user có phải là role 'user' không (không cho admin/moderator reset qua API này)
             $userRoles = $user->roles()->pluck('role_name')->toArray();
-            
+
             if (in_array('admin', $userRoles) || in_array('moderator', $userRoles)) {
                 return response()->json([
                     'success' => false,
@@ -351,7 +351,7 @@ class AuthController extends Controller
     /**
      * Verify email with token
      * This is called when user clicks the verification link in email
-     * 
+     *
      * @param Request $request
      * @return \Illuminate\View\View
      */
@@ -393,7 +393,7 @@ class AuthController extends Controller
 
     /**
      * Resend verification email
-     * 
+     *
      * @param Request $request
      * @return JsonResponse
      */

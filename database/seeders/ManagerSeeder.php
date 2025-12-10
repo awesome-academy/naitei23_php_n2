@@ -5,6 +5,7 @@ namespace Database\Seeders;
 use Illuminate\Database\Seeder;
 use App\Models\User;
 use App\Models\Venue;
+use App\Models\Role;
 use Illuminate\Support\Facades\Hash;
 
 class ManagerSeeder extends Seeder
@@ -34,12 +35,21 @@ class ManagerSeeder extends Seeder
             ],
         ];
 
+        // Ensure manager role exists
+        $managerRole = Role::firstOrCreate(['role_name' => 'manager']);
+
         $createdManagers = [];
         foreach ($managers as $managerData) {
             $manager = User::firstOrCreate(
                 ['email' => $managerData['email']],
                 $managerData
             );
+
+            // Assign manager role
+            if (!$manager->roles()->where('role_name', 'manager')->exists()) {
+                $manager->roles()->attach($managerRole->id);
+            }
+
             $createdManagers[] = $manager;
         }
 

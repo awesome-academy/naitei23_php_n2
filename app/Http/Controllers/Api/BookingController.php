@@ -52,12 +52,22 @@ class BookingController extends Controller
 
     /**
      * Tạo booking mới.
+     *
+     * Optional query param: ?auto_confirm=true (for dev/testing only)
      */
     public function store(StoreBookingRequest $request)
     {
         $user = $request->user();
 
-        $booking = $this->bookingService->create($user, $request->validated());
+        // Allow auto-confirm for testing (check env or query param)
+        $autoConfirm = $request->query('auto_confirm') === 'true'
+            && config('app.env') !== 'production';
+
+        $booking = $this->bookingService->create(
+            $user,
+            $request->validated(),
+            $autoConfirm
+        );
 
         return response()->json([
             'success' => true,

@@ -5,18 +5,19 @@ namespace App\Services;
 use App\Models\Booking;
 use App\Models\Payment;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\ValidationException;
 
 class PaymentService
 {
     /**
      * Process payment for a booking
-     * 
+     *
      * @param int $bookingId
      * @param int $userId
      * @param string $paymentMethod
      * @param array|null $meta
      * @return Payment
-     * @throws \Exception
+     * @throws ValidationException
      */
     public function pay(int $bookingId, int $userId, string $paymentMethod, ?array $meta = null): Payment
     {
@@ -27,22 +28,30 @@ class PaymentService
                 ->first();
 
             if (!$booking) {
-                throw new \Exception('Booking not found');
+                throw ValidationException::withMessages([
+                    'booking_id' => ['Booking not found.']
+                ]);
             }
 
             // Check authorization
             if ($booking->user_id !== $userId) {
-                throw new \Exception('Unauthorized to pay for this booking');
+                throw ValidationException::withMessages([
+                    'booking_id' => ['Unauthorized to pay for this booking.']
+                ]);
             }
 
             // Check if already paid (must check first)
             if ($booking->status === Booking::STATUS_PAID || $booking->paid_at !== null) {
-                throw new \Exception('Booking already paid');
+                throw ValidationException::withMessages([
+                    'booking_id' => ['Booking already paid.']
+                ]);
             }
 
             // Check booking status
             if ($booking->status !== Booking::STATUS_CONFIRMED) {
-                throw new \Exception('Booking must be confirmed before payment');
+                throw ValidationException::withMessages([
+                    'booking_id' => ['Booking must be confirmed before payment.']
+                ]);
             }
 
             // Simulate payment gateway (fake for now)
@@ -72,7 +81,7 @@ class PaymentService
 
     /**
      * List all payments for a user
-     * 
+     *
      * @param int $userId
      * @return \Illuminate\Database\Eloquent\Collection
      */

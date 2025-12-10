@@ -79,4 +79,27 @@ class Space extends Model
             ])
             ->orderBy('start_time');
     }
+
+    /**
+     * Scope to filter spaces available between given time range.
+     * Excludes spaces with confirmed/paid bookings that overlap.
+     * 
+     * @param \Illuminate\Database\Eloquent\Builder $query
+     * @param \Carbon\Carbon $start
+     * @param \Carbon\Carbon $end
+     * @return \Illuminate\Database\Eloquent\Builder
+     */
+    public function scopeAvailableBetween($query, \Carbon\Carbon $start, \Carbon\Carbon $end)
+    {
+        return $query->whereDoesntHave('bookings', function ($q) use ($start, $end) {
+            $q->whereIn('status', [
+                Booking::STATUS_CONFIRMED,
+                Booking::STATUS_PAID,
+            ])->where(function ($q2) use ($start, $end) {
+                // Overlap condition: booking overlaps with search range
+                $q2->where('start_time', '<', $end)
+                   ->where('end_time', '>', $start);
+            });
+        });
+    }
 }

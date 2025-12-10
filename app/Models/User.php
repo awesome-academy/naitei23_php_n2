@@ -78,6 +78,40 @@ class User extends Authenticatable
     {
         return $this->password_hash;
     }
+    public function getNameAttribute()
+    {
+        return $this->full_name;
+    }
+
+    // Mutator for name
+    public function setNameAttribute($value)
+    {
+        $this->attributes['full_name'] = $value;
+    }
+
+    // Accessor for phone (compatibility)
+    public function getPhoneAttribute()
+    {
+        return $this->phone_number;
+    }
+
+    // Mutator for phone
+    public function setPhoneAttribute($value)
+    {
+        $this->attributes['phone_number'] = $value;
+    }
+
+    // Accessor for avatar (compatibility)
+    public function getAvatarAttribute()
+    {
+        return $this->profile_avatar_url;
+    }
+
+    // Mutator for avatar
+    public function setAvatarAttribute($value)
+    {
+        $this->attributes['profile_avatar_url'] = $value;
+    }
 
     /**
      * Các booking mà user này đã tạo.
@@ -111,14 +145,24 @@ class User extends Authenticatable
     }
 
     /**
-     * Check if user has any of the given roles
+     * Check if user has a specific role
      *
-     * @param array $roleName
+     * @param string $roleName
      * @return bool
      */
     public function hasRole(string $roleName): bool
     {
         return $this->roles()->where('role_name', $roleName)->exists();
+    }
+
+    /**
+     * Check if user is admin
+     *
+     * @return bool
+     */
+    public function isAdmin(): bool
+    {
+        return $this->hasRole('admin');
     }
 
     /**
@@ -183,7 +227,7 @@ class User extends Authenticatable
 
     //public function venue_managers()
 
-    /** 
+    /**
      * Các venue mà user này là manager (qua bảng venue_managers).
      */
     public function managedVenues()
@@ -199,13 +243,4 @@ class User extends Authenticatable
         return $this->hasMany(Venue::class, 'owner_id');
     }
 
-    /**
-     * Kiểm tra user có phải admin không.
-     */
-    public function isAdmin(): bool
-    {
-        return $this->roles()
-            ->where('role_name', 'admin')
-            ->exists();
-    }
 }

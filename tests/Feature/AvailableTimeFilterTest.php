@@ -110,6 +110,33 @@ class AvailableTimeFilterTest extends TestCase
     }
 
     /** @test */
+    public function search_includes_space_when_search_ends_exactly_when_booking_starts()
+    {
+        // Space A has booking: 09:00-11:00
+        Booking::factory()->create([
+            'user_id' => $this->user->id,
+            'space_id' => $this->spaceA->id,
+            'start_time' => '2025-12-15 09:00:00',
+            'end_time' => '2025-12-15 11:00:00',
+            'status' => Booking::STATUS_CONFIRMED,
+        ]);
+
+        // Search 08:00-09:00 (ends exactly when booking starts)
+        $response = $this->getJson('/api/search/spaces?' . http_build_query([
+            'start_time' => '2025-12-15 08:00:00',
+            'end_time' => '2025-12-15 09:00:00',
+        ]));
+
+        $response->assertStatus(200);
+
+        $spaceNames = collect($response->json('data.items'))->pluck('name')->toArray();
+
+        // Space A SHOULD be available (no overlap - touching boundary is OK)
+        $this->assertContains('Space A', $spaceNames);
+        $this->assertContains('Space B', $spaceNames);
+    }
+
+    /** @test */
     public function search_excludes_space_with_paid_booking()
     {
         // Space A has paid booking

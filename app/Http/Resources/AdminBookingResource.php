@@ -23,21 +23,21 @@ class AdminBookingResource extends JsonResource
             'note' => $this->note,
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
-            
+
             // User info
             'user' => [
                 'id' => $this->user->id,
                 'name' => $this->user->full_name,
                 'email' => $this->user->email,
             ],
-            
+
             // Space info
             'space' => [
                 'id' => $this->space->id,
                 'name' => $this->space->name,
                 'venue_id' => $this->space->venue_id,
             ],
-            
+
             // Venue info (for easy filtering in FE)
             'venue' => [
                 'id' => $this->space->venue->id,

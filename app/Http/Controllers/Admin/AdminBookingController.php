@@ -17,9 +17,9 @@ class AdminBookingController extends Controller
 
     /**
      * List all bookings in system with filters.
-     * 
+     *
      * GET /api/admin/bookings
-     * 
+     *
      * Query params:
      * - status: string|array
      * - date_from: Y-m-d
@@ -56,7 +56,7 @@ class AdminBookingController extends Controller
 
     /**
      * Show booking detail.
-     * 
+     *
      * GET /api/admin/bookings/{booking}
      */
     public function show(Booking $booking): JsonResponse

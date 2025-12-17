@@ -15,16 +15,16 @@ class AdminStatisticsController extends Controller
 
     /**
      * Get dashboard statistics.
-     * 
+     *
      * GET /api/admin/statistics
-     * 
+     *
      * Query params:
      * - month: YYYY-MM (optional, defaults to current month)
      */
     public function index(Request $request): JsonResponse
     {
         $month = $request->query('month');
-        
+
         $statistics = $this->statisticsService->getStatistics($month);
 
         return response()->json([

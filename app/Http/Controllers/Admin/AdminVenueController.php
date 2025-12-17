@@ -16,9 +16,9 @@ class AdminVenueController extends Controller
 
     /**
      * List all venues with filters.
-     * 
+     *
      * GET /api/admin/venues
-     * 
+     *
      * Query params:
      * - status: pending|approved|rejected|blocked
      * - city: string
@@ -59,7 +59,7 @@ class AdminVenueController extends Controller
 
     /**
      * Approve a pending venue.
-     * 
+     *
      * PATCH /api/admin/venues/{venue}/approve
      */
     public function approve(Venue $venue): JsonResponse
@@ -75,9 +75,9 @@ class AdminVenueController extends Controller
 
     /**
      * Reject a pending venue.
-     * 
+     *
      * PATCH /api/admin/venues/{venue}/reject
-     * 
+     *
      * Body:
      * - reason: string (optional)
      */
@@ -95,9 +95,9 @@ class AdminVenueController extends Controller
 
     /**
      * Block an approved venue.
-     * 
+     *
      * PATCH /api/admin/venues/{venue}/block
-     * 
+     *
      * Body:
      * - reason: string (optional)
      */
@@ -115,7 +115,7 @@ class AdminVenueController extends Controller
 
     /**
      * Unblock a blocked venue.
-     * 
+     *
      * PATCH /api/admin/venues/{venue}/unblock
      */
     public function unblock(Venue $venue): JsonResponse

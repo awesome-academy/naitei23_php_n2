@@ -1,0 +1,1355 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Co-working Booking UI (Single file)</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <style>
+    body { background: #0b1020; color: #e8ecff; }
+    .card { background: #121a33; border: 1px solid rgba(255,255,255,0.08); }
+    .muted { color: rgba(232,236,255,0.75); }
+    .mono { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; }
+    .pointer { cursor: pointer; }
+    .badge-soft { background: rgba(255,255,255,0.10); border: 1px solid rgba(255,255,255,0.14); }
+    .table { --bs-table-bg: transparent; --bs-table-color: #e8ecff; }
+    .table td, .table th { border-color: rgba(255,255,255,0.10) !important; }
+    .nav-pills .nav-link.active { background: #4c6fff; }
+    .btn-primary { background: #4c6fff; border-color: #4c6fff; }
+    .form-control, .form-select { background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.14); color: #e8ecff; }
+    .form-control::placeholder { color: rgba(232,236,255,0.45); }
+    .form-control:focus, .form-select:focus { box-shadow: none; border-color: rgba(76,111,255,0.7); }
+    .hr { height: 1px; background: rgba(255,255,255,0.10); }
+    .smallcaps { letter-spacing: .08em; text-transform: uppercase; font-size: .78rem; color: rgba(232,236,255,0.7); }
+    .toast-container { position: fixed; top: 16px; right: 16px; z-index: 9999; }
+    canvas { background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.10); border-radius: 12px; }
+  </style>
+</head>
+<body>
+  <div class="toast-container" id="toastRoot"></div>
+
+  <div class="container py-4">
+    <!-- Header -->
+    <div class="d-flex flex-wrap gap-2 align-items-center justify-content-between mb-3">
+      <div>
+        <div class="h3 mb-0">Co-working Booking UI</div>
+        <div class="muted">Single-file HTML · gọi API bằng <span class="mono">/api/...</span></div>
+      </div>
+      <div class="d-flex flex-wrap gap-2 align-items-center">
+        <div class="input-group input-group-sm" style="width: 320px;">
+          <span class="input-group-text">BASE_URL</span>
+          <input id="baseUrl" class="form-control mono" placeholder="(để trống = same host)" />
+        </div>
+        <button class="btn btn-sm btn-outline-light" id="btnMe">Refresh /me</button>
+        <button class="btn btn-sm btn-outline-warning d-none" id="btnLogout">Logout</button>
+      </div>
+    </div>
+
+    <!-- Auth card -->
+    <div class="card p-3 mb-3" id="authCard">
+      <div class="row g-3 align-items-end">
+        <div class="col-lg-4">
+          <div class="smallcaps mb-1">Login</div>
+          <input id="email" class="form-control" placeholder="email" value="admin@workspace.com" />
+        </div>
+        <div class="col-lg-4">
+          <div class="smallcaps mb-1">Password</div>
+          <input id="password" type="password" class="form-control" placeholder="password" value="admin123" />
+        </div>
+        <div class="col-lg-4 d-flex gap-2">
+          <button class="btn btn-primary w-100" id="btnLogin">Login</button>
+          <div class="dropdown">
+            <button class="btn btn-outline-light dropdown-toggle" data-bs-toggle="dropdown">Demo</button>
+            <ul class="dropdown-menu dropdown-menu-dark">
+              <li><a class="dropdown-item" href="#" data-demo="admin">Admin</a></li>
+              <li><a class="dropdown-item" href="#" data-demo="owner">Owner</a></li>
+              <li><a class="dropdown-item" href="#" data-demo="user">User</a></li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <div class="mt-3 d-flex flex-wrap gap-2 align-items-center">
+        <span class="badge badge-soft">Token: <span id="tokenState" class="mono">none</span></span>
+        <span class="badge badge-soft">User: <span id="userState" class="mono">guest</span></span>
+        <span class="badge badge-soft">Roles: <span id="rolesState" class="mono">-</span></span>
+      </div>
+    </div>
+
+    <!-- Nav -->
+    <ul class="nav nav-pills gap-2 mb-3" id="mainTabs">
+      <li class="nav-item"><a class="nav-link active" href="#" data-tab="tabPublic">Public Search</a></li>
+      <li class="nav-item"><a class="nav-link d-none" href="#" data-tab="tabMyBookings">My Bookings</a></li>
+      <li class="nav-item"><a class="nav-link d-none" href="#" data-tab="tabMyPayments">My Payments</a></li>
+      <li class="nav-item"><a class="nav-link d-none" href="#" data-tab="tabOwner">Owner</a></li>
+      <li class="nav-item"><a class="nav-link d-none" href="#" data-tab="tabAdmin">Admin</a></li>
+    </ul>
+
+    <!-- Tabs content -->
+
+    <!-- Public Search -->
+    <div class="card p-3 mb-3" id="tabPublic">
+      <div class="d-flex align-items-center justify-content-between">
+        <div class="h5 mb-0">Search Spaces</div>
+        <button class="btn btn-sm btn-outline-light" id="btnSearch">Search</button>
+      </div>
+      <div class="muted mb-3">Supports <span class="mono">start_time/end_time</span> availability filter :contentReference[oaicite:5]{index=5}</div>
+
+      <div class="row g-2">
+        <div class="col-lg-3">
+          <input class="form-control" id="q" placeholder="q (name/venue/address)" />
+        </div>
+        <div class="col-lg-2">
+          <input class="form-control" id="city" placeholder="city (e.g. Hanoi)" />
+        </div>
+        <div class="col-lg-2">
+          <input class="form-control" id="min_price" placeholder="min_price" />
+        </div>
+        <div class="col-lg-2">
+          <input class="form-control" id="max_price" placeholder="max_price" />
+        </div>
+        <div class="col-lg-3">
+          <select class="form-select" id="per_page">
+            <option value="10">per_page 10</option>
+            <option value="15">per_page 15</option>
+            <option value="20">per_page 20</option>
+            <option value="50">per_page 50</option>
+          </select>
+        </div>
+
+        <div class="col-lg-3">
+          <label class="smallcaps mb-1">start_time</label>
+          <input type="datetime-local" class="form-control" id="start_time" />
+        </div>
+        <div class="col-lg-3">
+          <label class="smallcaps mb-1">end_time</label>
+          <input type="datetime-local" class="form-control" id="end_time" />
+        </div>
+        <div class="col-lg-6 d-flex align-items-end gap-2">
+          <div class="muted">Tip: để trống start/end = behavior cũ (không filter availability).</div>
+        </div>
+      </div>
+
+      <div class="hr my-3"></div>
+      <div id="searchMeta" class="muted mb-2"></div>
+      <div class="table-responsive">
+        <table class="table table-sm align-middle">
+          <thead>
+            <tr>
+              <th>Space</th>
+              <th>Venue</th>
+              <th>City</th>
+              <th>Capacity</th>
+              <th>Prices</th>
+              <th class="text-end">Action</th>
+            </tr>
+          </thead>
+          <tbody id="searchRows"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- My Bookings -->
+    <div class="card p-3 mb-3 d-none" id="tabMyBookings">
+      <div class="d-flex align-items-center justify-content-between">
+        <div class="h5 mb-0">My Bookings</div>
+        <button class="btn btn-sm btn-outline-light" id="btnLoadMyBookings">Reload</button>
+      </div>
+      <div class="muted mb-2">Rules: cancel trước khi payment success; pay khi <span class="mono">awaiting_payment/confirmed</span>. :contentReference[oaicite:6]{index=6}</div>
+      <div class="table-responsive">
+        <table class="table table-sm align-middle">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Status</th>
+              <th>Time</th>
+              <th>Total</th>
+              <th>Space / Venue</th>
+              <th class="text-end">Action</th>
+            </tr>
+          </thead>
+          <tbody id="myBookingRows"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- My Payments -->
+    <div class="card p-3 mb-3 d-none" id="tabMyPayments">
+      <div class="d-flex align-items-center justify-content-between">
+        <div class="h5 mb-0">My Payments</div>
+        <button class="btn btn-sm btn-outline-light" id="btnLoadMyPayments">Reload</button>
+      </div>
+      <div class="table-responsive">
+        <table class="table table-sm align-middle">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Booking</th>
+              <th>Amount</th>
+              <th>Method</th>
+              <th>Status</th>
+              <th>Paid at</th>
+            </tr>
+          </thead>
+          <tbody id="myPaymentRows"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Owner -->
+    <div class="card p-3 mb-3 d-none" id="tabOwner">
+      <div class="d-flex align-items-center justify-content-between">
+        <div class="h5 mb-0">Owner Booking Management</div>
+        <button class="btn btn-sm btn-outline-light" id="btnLoadOwnerBookings">Reload</button>
+      </div>
+      <div class="muted mb-2">Owner endpoints: list + confirm/reject :contentReference[oaicite:7]{index=7}</div>
+
+      <div class="row g-2 mb-2">
+        <div class="col-lg-3">
+          <input class="form-control" id="owner_status" placeholder="status (optional)" />
+        </div>
+        <div class="col-lg-2">
+          <input class="form-control" id="owner_venue_id" placeholder="venue_id (optional)" />
+        </div>
+        <div class="col-lg-2">
+          <input class="form-control" id="owner_space_id" placeholder="space_id (optional)" />
+        </div>
+        <div class="col-lg-2">
+          <input type="date" class="form-control" id="owner_start_date" />
+        </div>
+        <div class="col-lg-2">
+          <input type="date" class="form-control" id="owner_end_date" />
+        </div>
+        <div class="col-lg-1 d-grid">
+          <button class="btn btn-outline-light" id="btnOwnerFilter">Go</button>
+        </div>
+      </div>
+
+      <div class="table-responsive">
+        <table class="table table-sm align-middle">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Status</th>
+              <th>User</th>
+              <th>Time</th>
+              <th>Space / Venue</th>
+              <th>Total</th>
+              <th class="text-end">Action</th>
+            </tr>
+          </thead>
+          <tbody id="ownerBookingRows"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Admin -->
+    <div class="card p-3 mb-3 d-none" id="tabAdmin">
+      <div class="d-flex flex-wrap align-items-center justify-content-between gap-2">
+        <div class="h5 mb-0">Admin Dashboard</div>
+        <div class="d-flex gap-2 align-items-center">
+          <input type="month" class="form-control form-control-sm" id="admin_month" style="width: 160px;">
+          <button class="btn btn-sm btn-outline-light" id="btnAdminRefresh">Refresh</button>
+        </div>
+      </div>
+
+      <ul class="nav nav-pills gap-2 my-3" id="adminTabs">
+        <li class="nav-item"><a class="nav-link active" href="#" data-admin-tab="adminStats">Statistics</a></li>
+        <li class="nav-item"><a class="nav-link" href="#" data-admin-tab="adminBookings">Bookings</a></li>
+        <li class="nav-item"><a class="nav-link" href="#" data-admin-tab="adminVenues">Venues</a></li>
+        <li class="nav-item"><a class="nav-link" href="#" data-admin-tab="adminPayments">Payments</a></li>
+      </ul>
+
+      <!-- Admin Stats -->
+      <div id="adminStats">
+        <div class="row g-2">
+          <div class="col-lg-3"><div class="card p-3"><div class="smallcaps">Total users</div><div class="h4 mb-0" id="st_total_users">-</div></div></div>
+          <div class="col-lg-3"><div class="card p-3"><div class="smallcaps">New users (month)</div><div class="h4 mb-0" id="st_new_users">-</div></div></div>
+          <div class="col-lg-3"><div class="card p-3"><div class="smallcaps">Bookings (month)</div><div class="h4 mb-0" id="st_bookings_month">-</div></div></div>
+          <div class="col-lg-3"><div class="card p-3"><div class="smallcaps">Revenue (month)</div><div class="h4 mb-0" id="st_rev_month">-</div></div></div>
+        </div>
+
+        <div class="row g-2 mt-2">
+          <div class="col-lg-6">
+            <div class="card p-3">
+              <div class="d-flex align-items-center justify-content-between">
+                <div class="smallcaps">Bookings by status (month)</div>
+                <span class="badge badge-soft" id="st_month">-</span>
+              </div>
+              <canvas id="chartStatus" width="600" height="220"></canvas>
+              <div class="muted mt-2">Chart data from <span class="mono">/api/admin/statistics</span>. :contentReference[oaicite:8]{index=8}</div>
+            </div>
+          </div>
+          <div class="col-lg-6">
+            <div class="card p-3">
+              <div class="smallcaps mb-2">Venue summary</div>
+              <div class="d-flex flex-wrap gap-2">
+                <span class="badge badge-soft">Total venues: <span id="st_total_venues">-</span></span>
+                <span class="badge badge-soft">Pending: <span id="st_pending_venues">-</span></span>
+                <span class="badge badge-soft">Approved: <span id="st_approved_venues">-</span></span>
+                <span class="badge badge-soft">Total revenue: <span id="st_total_revenue">-</span></span>
+              </div>
+              <div class="muted mt-2">Pending venues = badge alert cho moderation.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Admin Bookings -->
+      <div class="d-none" id="adminBookings">
+        <div class="muted mb-2">Endpoint: <span class="mono">GET /api/admin/bookings</span> (filters + pagination). :contentReference[oaicite:9]{index=9}</div>
+
+        <div class="row g-2 mb-2">
+          <div class="col-lg-2"><input class="form-control" id="ab_status" placeholder="status" /></div>
+          <div class="col-lg-2"><input type="date" class="form-control" id="ab_start_date" /></div>
+          <div class="col-lg-2"><input type="date" class="form-control" id="ab_end_date" /></div>
+          <div class="col-lg-2"><input class="form-control" id="ab_user_id" placeholder="user_id" /></div>
+          <div class="col-lg-2"><input class="form-control" id="ab_venue_id" placeholder="venue_id" /></div>
+          <div class="col-lg-2"><input class="form-control" id="ab_search" placeholder="search (name/email/space)" /></div>
+          <div class="col-lg-12 d-flex gap-2">
+            <button class="btn btn-outline-light" id="btnAdminBookings">Load</button>
+            <div class="muted" id="ab_meta"></div>
+          </div>
+        </div>
+
+        <div class="table-responsive">
+          <table class="table table-sm align-middle">
+            <thead>
+              <tr>
+                <th>ID</th><th>Status</th><th>User</th><th>Time</th><th>Space/Venue</th><th>Total</th>
+              </tr>
+            </thead>
+            <tbody id="ab_rows"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Admin Venues -->
+      <div class="d-none" id="adminVenues">
+        <div class="muted mb-2">Moderation endpoints: list pending + approve/reject/block/unblock. :contentReference[oaicite:10]{index=10}</div>
+
+        <div class="row g-2 mb-2">
+          <div class="col-lg-3">
+            <select class="form-select" id="av_status">
+              <option value="pending">pending</option>
+              <option value="approved">approved</option>
+              <option value="rejected">rejected</option>
+              <option value="blocked">blocked</option>
+              <option value="">(all)</option>
+            </select>
+          </div>
+          <div class="col-lg-9 d-flex gap-2">
+            <button class="btn btn-outline-light" id="btnAdminVenues">Load</button>
+            <div class="muted" id="av_meta"></div>
+          </div>
+        </div>
+
+        <div class="table-responsive">
+          <table class="table table-sm align-middle">
+            <thead>
+              <tr>
+                <th>ID</th><th>Name</th><th>City</th><th>Status</th><th>Created</th><th class="text-end">Action</th>
+              </tr>
+            </thead>
+            <tbody id="av_rows"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Admin Payments -->
+      <div class="d-none" id="adminPayments">
+        <div class="muted mb-2">Endpoint: <span class="mono">GET /api/admin/payments</span> (filters). :contentReference[oaicite:11]{index=11}</div>
+
+        <div class="row g-2 mb-2">
+          <div class="col-lg-2"><input class="form-control" id="ap_status" placeholder="status" /></div>
+          <div class="col-lg-2"><input class="form-control" id="ap_method" placeholder="payment_method" /></div>
+          <div class="col-lg-2"><input class="form-control" id="ap_user_id" placeholder="user_id" /></div>
+          <div class="col-lg-2"><input class="form-control" id="ap_venue_id" placeholder="venue_id" /></div>
+          <div class="col-lg-2"><input class="form-control" id="ap_space_id" placeholder="space_id" /></div>
+          <div class="col-lg-2 d-grid"><button class="btn btn-outline-light" id="btnAdminPayments">Load</button></div>
+        </div>
+
+        <div class="table-responsive">
+          <table class="table table-sm align-middle">
+            <thead>
+              <tr>
+                <th>ID</th><th>Booking</th><th>Amount</th><th>Method</th><th>Status</th><th>Paid at</th><th>User</th><th>Venue</th>
+              </tr>
+            </thead>
+            <tbody id="ap_rows"></tbody>
+          </table>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Booking modal -->
+  <div class="modal fade" id="modalBook" tabindex="-1">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+      <div class="modal-content text-light" style="background:#121a33;border:1px solid rgba(255,255,255,0.10);">
+        <div class="modal-header">
+          <h5 class="modal-title">Create Booking</h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <div class="muted mb-2">POST <span class="mono">/api/bookings</span></div>
+          <div class="row g-2">
+            <div class="col-lg-4">
+              <label class="smallcaps mb-1">space_id</label>
+              <input id="book_space_id" class="form-control mono" readonly />
+            </div>
+            <div class="col-lg-4">
+              <label class="smallcaps mb-1">start_time</label>
+              <input id="book_start" type="datetime-local" class="form-control" />
+            </div>
+            <div class="col-lg-4">
+              <label class="smallcaps mb-1">end_time</label>
+              <input id="book_end" type="datetime-local" class="form-control" />
+            </div>
+            <div class="col-lg-12">
+              <label class="smallcaps mb-1">note</label>
+              <input id="book_note" class="form-control" placeholder="optional" />
+            </div>
+          </div>
+          <div class="muted mt-2" id="book_hint"></div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-outline-light" data-bs-dismiss="modal">Close</button>
+          <button class="btn btn-primary" id="btnBookSubmit">Create</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Pay modal -->
+  <div class="modal fade" id="modalPay" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content text-light" style="background:#121a33;border:1px solid rgba(255,255,255,0.10);">
+        <div class="modal-header">
+          <h5 class="modal-title">Pay Booking</h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <div class="muted mb-2">POST <span class="mono">/api/payments</span></div>
+          <div class="row g-2">
+            <div class="col-12">
+              <label class="smallcaps mb-1">booking_id</label>
+              <input id="pay_booking_id" class="form-control mono" readonly />
+            </div>
+            <div class="col-12">
+              <label class="smallcaps mb-1">payment_method</label>
+              <select id="pay_method" class="form-select">
+                <option value="cash">cash</option>
+                <option value="bank_transfer">bank_transfer</option>
+                <option value="e_wallet">e_wallet</option>
+                <option value="credit_card">credit_card</option>
+              </select>
+            </div>
+          </div>
+          <div class="muted mt-2">Rule: chỉ pay khi <span class="mono">awaiting_payment/confirmed</span>. :contentReference[oaicite:12]{index=12}</div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-outline-light" data-bs-dismiss="modal">Close</button>
+          <button class="btn btn-primary" id="btnPaySubmit">Pay</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script>
+    // ====== CONFIG / STATE ======
+    const CONFIG = {
+      TOKEN_KEY: 'workspace_token',
+      USER_KEY: 'workspace_user',
+      BASE_URL_KEY: 'workspace_base_url',
+    };
+
+    const BOOKING_STATUS_COLORS = {
+      'pending_confirmation': 'warning',
+      'awaiting_payment': 'info',
+      'confirmed': 'success',
+      'paid': 'success',
+      'cancelled': 'danger',
+      'rejected': 'danger',
+      'completed': 'secondary',
+    };
+
+    const VENUE_STATUS_COLORS = {
+      'pending': 'warning',
+      'approved': 'success',
+      'rejected': 'danger',
+      'blocked': 'dark'
+    };
+
+    function getBaseUrl() {
+      return (localStorage.getItem(CONFIG.BASE_URL_KEY) || '').trim();
+    }
+    function setBaseUrl(v) {
+      localStorage.setItem(CONFIG.BASE_URL_KEY, (v || '').trim());
+    }
+
+    function getToken() { return localStorage.getItem(CONFIG.TOKEN_KEY); }
+    function setToken(t) { localStorage.setItem(CONFIG.TOKEN_KEY, t); }
+    function clearAuth() { localStorage.removeItem(CONFIG.TOKEN_KEY); localStorage.removeItem(CONFIG.USER_KEY); }
+
+    function getUser() {
+      const raw = localStorage.getItem(CONFIG.USER_KEY);
+      try { return raw ? JSON.parse(raw) : null; } catch { return null; }
+    }
+    function setUser(u) { localStorage.setItem(CONFIG.USER_KEY, JSON.stringify(u)); }
+
+    function hasRole(role) {
+      const u = getUser();
+      const roles = (u && (u.roles || u.role || [])) || [];
+      return Array.isArray(roles) ? roles.includes(role) : (roles === role);
+    }
+
+    function fmtMoney(x) {
+      if (x === null || x === undefined) return '-';
+      const n = Number(x);
+      if (Number.isNaN(n)) return String(x);
+      return n.toLocaleString('vi-VN') + ' ₫';
+    }
+    function fmtDate(s) {
+      if (!s) return '-';
+      const d = new Date(s);
+      if (isNaN(d.getTime())) return s;
+      return d.toLocaleString('vi-VN', { year:'numeric', month:'2-digit', day:'2-digit', hour:'2-digit', minute:'2-digit' });
+    }
+    function toIsoOrNullFromDatetimeLocal(v) {
+      if (!v) return null;
+      // "YYYY-MM-DDTHH:mm" -> keep as-is (backend accepts ISO-ish); optionally add seconds.
+      return v;
+    }
+
+    // ====== TOAST ======
+    function toast(message, type = 'info') {
+      const root = document.getElementById('toastRoot');
+      const id = 't' + Math.random().toString(16).slice(2);
+      const color = { info:'primary', success:'success', warn:'warning', error:'danger' }[type] || 'primary';
+      const el = document.createElement('div');
+      el.className = `toast align-items-center text-bg-${color} border-0 show mb-2`;
+      el.id = id;
+      el.innerHTML = `
+        <div class="d-flex">
+          <div class="toast-body">${escapeHtml(message)}</div>
+          <button type="button" class="btn-close btn-close-white me-2 m-auto" aria-label="Close"></button>
+        </div>`;
+      el.querySelector('button').onclick = () => el.remove();
+      root.appendChild(el);
+      setTimeout(() => { el && el.remove(); }, 4500);
+    }
+
+    function escapeHtml(str) {
+      return String(str)
+        .replaceAll('&','&amp;')
+        .replaceAll('<','&lt;')
+        .replaceAll('>','&gt;')
+        .replaceAll('"','&quot;')
+        .replaceAll("'","&#039;");
+    }
+
+    // ====== API CLIENT (response format: {success,message,data}) ======  // :contentReference[oaicite:13]{index=13}
+    const api = {
+      async request(endpoint, options = {}) {
+        const base = getBaseUrl();
+        const url = base ? `${base}${endpoint}` : endpoint;
+        const headers = Object.assign({ 'Content-Type': 'application/json' }, options.headers || {});
+        const token = getToken();
+        if (token) headers['Authorization'] = `Bearer ${token}`;
+
+        const res = await fetch(url, Object.assign({}, options, { headers }));
+        let payload = null;
+        try { payload = await res.json(); } catch { payload = null; }
+
+        if (!res.ok) {
+          // show 422 errors map if exist
+          let msg = (payload && payload.message) ? payload.message : `HTTP ${res.status}`;
+          if (payload && payload.errors) {
+            msg += ' | ' + JSON.stringify(payload.errors);
+          }
+          if (res.status === 401) {
+            clearAuth();
+            syncAuthUI();
+          }
+          throw new Error(msg);
+        }
+        return payload;
+      },
+
+      // Auth
+      async login(email, password) {
+        const out = await this.request('/api/auth/login', {
+          method: 'POST',
+          body: JSON.stringify({ email, password })
+        });
+        // contract: token + user.roles[]  :contentReference[oaicite:14]{index=14}
+        const token = out?.data?.token;
+        const user = out?.data?.user;
+        if (!token || !user) throw new Error('Login response missing token/user');
+        setToken(token); setUser(user);
+        return out;
+      },
+      async logout() {
+        await this.request('/api/auth/logout', { method: 'POST' });
+        clearAuth();
+      },
+      async me() {
+        return this.request('/api/auth/me');
+      },
+
+      // Public search
+      async searchSpaces(params) {
+        const qs = new URLSearchParams(params);
+        return this.request('/api/search/spaces?' + qs.toString());
+      },
+
+      // User
+      async myBookings() { return this.request('/api/bookings'); },
+      async createBooking(body) {
+        return this.request('/api/bookings', { method: 'POST', body: JSON.stringify(body) });
+      },
+      async cancelBooking(id) { return this.request(`/api/bookings/${id}`, { method: 'DELETE' }); },
+
+      async myPayments() { return this.request('/api/payments'); },
+      async pay(body) {
+        return this.request('/api/payments', { method: 'POST', body: JSON.stringify(body) });
+      },
+
+      // Owner
+      async ownerBookings(params) {
+        const qs = new URLSearchParams(params);
+        return this.request('/api/owner/bookings?' + qs.toString());
+      },
+      async ownerConfirm(id) { return this.request(`/api/owner/bookings/${id}/confirm`, { method: 'PATCH' }); },
+      async ownerReject(id) { return this.request(`/api/owner/bookings/${id}/reject`, { method: 'PATCH' }); },
+
+      // Admin
+      async adminStats(month) {
+        const qs = new URLSearchParams();
+        if (month) qs.set('month', month);
+        return this.request('/api/admin/statistics?' + qs.toString());
+      },
+      async adminBookings(params) {
+        const qs = new URLSearchParams(params);
+        return this.request('/api/admin/bookings?' + qs.toString());
+      },
+      async adminVenues(params) {
+        const qs = new URLSearchParams(params);
+        return this.request('/api/admin/venues?' + qs.toString());
+      },
+      async adminApproveVenue(id) { return this.request(`/api/admin/venues/${id}/approve`, { method: 'PATCH' }); },
+      async adminRejectVenue(id) { return this.request(`/api/admin/venues/${id}/reject`, { method: 'PATCH' }); },
+      async adminBlockVenue(id) { return this.request(`/api/admin/venues/${id}/block`, { method: 'PATCH' }); },
+      async adminUnblockVenue(id) { return this.request(`/api/admin/venues/${id}/unblock`, { method: 'PATCH' }); },
+      async adminPayments(params) {
+        const qs = new URLSearchParams(params);
+        return this.request('/api/admin/payments?' + qs.toString());
+      },
+    };
+
+    // ====== UI HELPERS ======
+    function badge(text, kind = 'secondary') {
+      return `<span class="badge text-bg-${kind}">${escapeHtml(text)}</span>`;
+    }
+    function badgeByBookingStatus(st) {
+      const kind = BOOKING_STATUS_COLORS[st] || 'secondary';
+      return badge(st, kind);
+    }
+    function badgeByVenueStatus(st) {
+      const kind = VENUE_STATUS_COLORS[st] || 'secondary';
+      return badge(st, kind);
+    }
+
+    function normalizeList(payload) {
+      // supports: {data: {data:[...], ...}} OR {data:[...]} OR {data:{items:[...]}}
+      const d = payload?.data;
+      if (!d) return { items: [], meta: null };
+      if (Array.isArray(d)) return { items: d, meta: null };
+      if (Array.isArray(d?.data)) return { items: d.data, meta: { current_page:d.current_page, last_page:d.last_page, total:d.total, per_page:d.per_page } };
+      if (Array.isArray(d?.items)) return { items: d.items, meta: d.meta || null };
+      return { items: [], meta: null };
+    }
+
+    function showTab(tabId) {
+      ['tabPublic','tabMyBookings','tabMyPayments','tabOwner','tabAdmin'].forEach(id => {
+        document.getElementById(id).classList.toggle('d-none', id !== tabId);
+      });
+      document.querySelectorAll('#mainTabs .nav-link').forEach(a => {
+        a.classList.toggle('active', a.dataset.tab === tabId);
+      });
+    }
+
+    function showAdminTab(tabId) {
+      ['adminStats','adminBookings','adminVenues','adminPayments'].forEach(id => {
+        document.getElementById(id).classList.toggle('d-none', id !== tabId);
+      });
+      document.querySelectorAll('#adminTabs .nav-link').forEach(a => {
+        a.classList.toggle('active', a.dataset.adminTab === tabId);
+      });
+    }
+
+    function syncAuthUI() {
+      document.getElementById('baseUrl').value = getBaseUrl();
+      const token = getToken();
+      const user = getUser();
+
+      document.getElementById('tokenState').textContent = token ? (token.slice(0,16) + '...') : 'none';
+      document.getElementById('userState').textContent = user ? (user.email || user.full_name || user.name || ('id:'+user.id)) : 'guest';
+      document.getElementById('rolesState').textContent = user ? JSON.stringify(user.roles || []) : '-';
+
+      document.getElementById('btnLogout').classList.toggle('d-none', !token);
+
+      // Tabs visibility
+      const isAuthed = !!token;
+      document.querySelector('[data-tab="tabMyBookings"]').classList.toggle('d-none', !isAuthed);
+      document.querySelector('[data-tab="tabMyPayments"]').classList.toggle('d-none', !isAuthed);
+      document.querySelector('[data-tab="tabOwner"]').classList.toggle('d-none', !(isAuthed && (hasRole('owner') || hasRole('manager'))));
+      document.querySelector('[data-tab="tabAdmin"]').classList.toggle('d-none', !(isAuthed && hasRole('admin')));
+
+      // If current tab hidden -> go public
+      const active = document.querySelector('#mainTabs .nav-link.active');
+      if (active && active.classList.contains('d-none')) showTab('tabPublic');
+    }
+
+    // ====== PUBLIC SEARCH RENDER ======
+    function renderSearchRows(items) {
+      const tbody = document.getElementById('searchRows');
+      tbody.innerHTML = '';
+      items.forEach(sp => {
+        const venue = sp.venue || {};
+        const prices = [
+          sp.price_per_hour ? `H: ${fmtMoney(sp.price_per_hour)}` : null,
+          sp.price_per_day ? `D: ${fmtMoney(sp.price_per_day)}` : null,
+          sp.price_per_month ? `M: ${fmtMoney(sp.price_per_month)}` : null,
+        ].filter(Boolean).join('<br>');
+
+        const canBook = !!getToken();
+        const btn = canBook
+          ? `<button class="btn btn-sm btn-primary" data-action="book" data-space="${sp.id}">Book</button>`
+          : `<span class="muted">Login to book</span>`;
+
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td><div class="fw-semibold">${escapeHtml(sp.name || ('Space #' + sp.id))}</div><div class="muted">id: <span class="mono">${sp.id}</span></div></td>
+          <td>${escapeHtml(venue.name || '-')}</td>
+          <td>${escapeHtml(venue.city || '-')}</td>
+          <td>${escapeHtml(sp.capacity ?? '-')}</td>
+          <td class="mono">${prices || '-'}</td>
+          <td class="text-end">${btn}</td>
+        `;
+        tbody.appendChild(tr);
+      });
+
+      tbody.querySelectorAll('button[data-action="book"]').forEach(btn => {
+        btn.onclick = () => openBookingModal(btn.dataset.space);
+      });
+    }
+
+    async function doSearch() {
+      try {
+        const params = {};
+        const q = document.getElementById('q').value.trim();
+        const city = document.getElementById('city').value.trim();
+        const min_price = document.getElementById('min_price').value.trim();
+        const max_price = document.getElementById('max_price').value.trim();
+        const per_page = document.getElementById('per_page').value;
+
+        if (q) params.q = q;
+        if (city) params.city = city;
+        if (min_price) params.min_price = min_price;
+        if (max_price) params.max_price = max_price;
+        if (per_page) params.per_page = per_page;
+
+        const st = toIsoOrNullFromDatetimeLocal(document.getElementById('start_time').value);
+        const en = toIsoOrNullFromDatetimeLocal(document.getElementById('end_time').value);
+        if (st && en) { params.start_time = st; params.end_time = en; }
+
+        const out = await api.searchSpaces(params);
+        const { items, meta } = normalizeList(out);
+
+        document.getElementById('searchMeta').textContent =
+          meta ? `Page ${meta.current_page}/${meta.last_page} · total ${meta.total}` : `Items: ${items.length}`;
+
+        renderSearchRows(items);
+        toast('Search loaded', 'success');
+      } catch (e) {
+        toast(e.message, 'error');
+      }
+    }
+
+    // ====== BOOKING MODAL ======
+    const modalBook = new bootstrap.Modal(document.getElementById('modalBook'));
+    function openBookingModal(spaceId) {
+      document.getElementById('book_space_id').value = spaceId;
+      // prefill from search filter if any
+      document.getElementById('book_start').value = document.getElementById('start_time').value || '';
+      document.getElementById('book_end').value = document.getElementById('end_time').value || '';
+      document.getElementById('book_note').value = '';
+      document.getElementById('book_hint').textContent = '';
+      modalBook.show();
+    }
+
+    document.getElementById('btnBookSubmit').onclick = async () => {
+      try {
+        const space_id = Number(document.getElementById('book_space_id').value);
+        const start_time = toIsoOrNullFromDatetimeLocal(document.getElementById('book_start').value);
+        const end_time = toIsoOrNullFromDatetimeLocal(document.getElementById('book_end').value);
+        const note = document.getElementById('book_note').value.trim() || null;
+
+        const body = { space_id, start_time, end_time };
+        if (note) body.note = note;
+
+        const out = await api.createBooking(body);
+        toast(out?.message || 'Booking created', 'success');
+        modalBook.hide();
+
+        if (!document.getElementById('tabMyBookings').classList.contains('d-none')) {
+          await loadMyBookings();
+        }
+      } catch (e) {
+        document.getElementById('book_hint').textContent = e.message;
+        toast(e.message, 'error');
+      }
+    };
+
+    // ====== MY BOOKINGS ======
+    function canCancelBooking(status) {
+      // cancel allowed before payment success; UI-side quick gating
+      return ['pending_confirmation','awaiting_payment','confirmed'].includes(status);
+    }
+    function canPayBooking(status) {
+      return ['awaiting_payment','confirmed'].includes(status);
+    }
+
+    function renderMyBookings(items) {
+      const tbody = document.getElementById('myBookingRows');
+      tbody.innerHTML = '';
+      items.forEach(b => {
+        const st = b.status;
+        const spaceName = b.space?.name || b.space_name || ('Space #' + (b.space_id ?? '-'));
+        const venueName = b.venue?.name || b.space?.venue?.name || b.venue_name || '-';
+        const venueAddr = b.venue?.address || b.space?.venue?.address || '';
+
+        const actions = [];
+        if (canPayBooking(st)) actions.push(`<button class="btn btn-sm btn-primary" data-act="pay" data-id="${b.id}">Pay</button>`);
+        if (canCancelBooking(st)) actions.push(`<button class="btn btn-sm btn-outline-warning" data-act="cancel" data-id="${b.id}">Cancel</button>`);
+
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td class="mono">${b.id}</td>
+          <td>${badgeByBookingStatus(st)}</td>
+          <td>${fmtDate(b.start_time)} → ${fmtDate(b.end_time)}</td>
+          <td class="mono">${fmtMoney(b.total_price)}</td>
+          <td>
+            <div class="fw-semibold">${escapeHtml(spaceName)}</div>
+            <div class="muted">${escapeHtml(venueName)} ${venueAddr ? ('· ' + escapeHtml(venueAddr)) : ''}</div>
+          </td>
+          <td class="text-end d-flex gap-2 justify-content-end">${actions.join('') || '<span class="muted">-</span>'}</td>
+        `;
+        tbody.appendChild(tr);
+      });
+
+      tbody.querySelectorAll('button[data-act="cancel"]').forEach(btn => {
+        btn.onclick = async () => {
+          if (!confirm('Cancel this booking?')) return;
+          try {
+            const out = await api.cancelBooking(btn.dataset.id);
+            toast(out?.message || 'Cancelled', 'success');
+            await loadMyBookings();
+          } catch (e) {
+            toast(e.message, 'error');
+          }
+        };
+      });
+      tbody.querySelectorAll('button[data-act="pay"]').forEach(btn => {
+        btn.onclick = () => openPayModal(btn.dataset.id);
+      });
+    }
+
+    async function loadMyBookings() {
+      try {
+        const out = await api.myBookings();
+        const { items } = normalizeList(out);
+        renderMyBookings(items);
+        toast('My bookings loaded', 'success');
+      } catch (e) {
+        toast(e.message, 'error');
+      }
+    }
+
+    // ====== PAY MODAL ======
+    const modalPay = new bootstrap.Modal(document.getElementById('modalPay'));
+    function openPayModal(bookingId) {
+      document.getElementById('pay_booking_id').value = bookingId;
+      document.getElementById('pay_method').value = 'bank_transfer';
+      modalPay.show();
+    }
+
+    document.getElementById('btnPaySubmit').onclick = async () => {
+      try {
+        const booking_id = Number(document.getElementById('pay_booking_id').value);
+        const payment_method = document.getElementById('pay_method').value;
+        const out = await api.pay({ booking_id, payment_method });
+        toast(out?.message || 'Payment created', 'success');
+        modalPay.hide();
+        await loadMyBookings();
+        await loadMyPayments();
+      } catch (e) {
+        toast(e.message, 'error');
+      }
+    };
+
+    // ====== MY PAYMENTS ======
+    function renderMyPayments(items) {
+      const tbody = document.getElementById('myPaymentRows');
+      tbody.innerHTML = '';
+      items.forEach(p => {
+        const st = p.transaction_status || p.status || '-';
+        const method = p.payment_method || p.method || '-';
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td class="mono">${p.id ?? '-'}</td>
+          <td class="mono">${p.booking_id ?? p.booking?.id ?? '-'}</td>
+          <td class="mono">${fmtMoney(p.amount)}</td>
+          <td class="mono">${escapeHtml(method)}</td>
+          <td>${badge(st, st === 'success' ? 'success' : (st === 'failed' ? 'danger' : 'warning'))}</td>
+          <td>${fmtDate(p.paid_at)}</td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    async function loadMyPayments() {
+      try {
+        const out = await api.myPayments();
+        const { items } = normalizeList(out);
+        renderMyPayments(items);
+        toast('My payments loaded', 'success');
+      } catch (e) {
+        toast(e.message, 'error');
+      }
+    }
+
+    // ====== OWNER BOOKINGS ======
+    function renderOwnerBookings(items) {
+      const tbody = document.getElementById('ownerBookingRows');
+      tbody.innerHTML = '';
+      items.forEach(b => {
+        const st = b.status;
+        const user = b.user || {};
+        const space = b.space || {};
+        const venue = b.venue || space.venue || {};
+
+        const actions = [];
+        if (st === 'pending_confirmation') {
+          actions.push(`<button class="btn btn-sm btn-primary" data-act="confirm" data-id="${b.id}">Confirm</button>`);
+          actions.push(`<button class="btn btn-sm btn-outline-danger" data-act="reject" data-id="${b.id}">Reject</button>`);
+        }
+
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td class="mono">${b.id}</td>
+          <td>${badgeByBookingStatus(st)}</td>
+          <td>
+            <div class="fw-semibold">${escapeHtml(user.name || user.full_name || '-')}</div>
+            <div class="muted mono">${escapeHtml(user.email || '-')}</div>
+          </td>
+          <td>${fmtDate(b.start_time)} → ${fmtDate(b.end_time)}</td>
+          <td>
+            <div class="fw-semibold">${escapeHtml(space.name || ('Space #' + (b.space_id ?? '-')))}</div>
+            <div class="muted">${escapeHtml(venue.name || '-')}</div>
+          </td>
+          <td class="mono">${fmtMoney(b.total_price)}</td>
+          <td class="text-end d-flex gap-2 justify-content-end">${actions.join('') || '<span class="muted">-</span>'}</td>
+        `;
+        tbody.appendChild(tr);
+      });
+
+      tbody.querySelectorAll('button[data-act="confirm"]').forEach(btn => {
+        btn.onclick = async () => {
+          try {
+            const out = await api.ownerConfirm(btn.dataset.id);
+            toast(out?.message || 'Confirmed', 'success');
+            await loadOwnerBookings();
+          } catch (e) { toast(e.message, 'error'); }
+        };
+      });
+      tbody.querySelectorAll('button[data-act="reject"]').forEach(btn => {
+        btn.onclick = async () => {
+          if (!confirm('Reject this booking?')) return;
+          try {
+            const out = await api.ownerReject(btn.dataset.id);
+            toast(out?.message || 'Rejected', 'success');
+            await loadOwnerBookings();
+          } catch (e) { toast(e.message, 'error'); }
+        };
+      });
+    }
+
+    async function loadOwnerBookings(extraParams = {}) {
+      try {
+        const params = Object.assign({}, extraParams);
+        const st = document.getElementById('owner_status').value.trim();
+        const venue_id = document.getElementById('owner_venue_id').value.trim();
+        const space_id = document.getElementById('owner_space_id').value.trim();
+        const start_date = document.getElementById('owner_start_date').value;
+        const end_date = document.getElementById('owner_end_date').value;
+
+        if (st) params.status = st;
+        if (venue_id) params.venue_id = venue_id;
+        if (space_id) params.space_id = space_id;
+        if (start_date) params.start_date = start_date;
+        if (end_date) params.end_date = end_date;
+
+        const out = await api.ownerBookings(params);
+        const { items } = normalizeList(out);
+        renderOwnerBookings(items);
+        toast('Owner bookings loaded', 'success');
+      } catch (e) {
+        toast(e.message, 'error');
+      }
+    }
+
+    // ====== ADMIN ======
+    function drawBarChart(canvasId, obj) {
+      const canvas = document.getElementById(canvasId);
+      const ctx = canvas.getContext('2d');
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      const entries = Object.entries(obj || {});
+      if (!entries.length) {
+        ctx.fillText('No data', 10, 20);
+        return;
+      }
+
+      const padding = 20;
+      const w = canvas.width - padding*2;
+      const h = canvas.height - padding*2;
+      const max = Math.max(...entries.map(([,v]) => Number(v) || 0), 1);
+
+      // axes
+      ctx.strokeStyle = 'rgba(255,255,255,0.25)';
+      ctx.beginPath();
+      ctx.moveTo(padding, padding);
+      ctx.lineTo(padding, padding + h);
+      ctx.lineTo(padding + w, padding + h);
+      ctx.stroke();
+
+      const barW = w / entries.length * 0.72;
+      const gap = w / entries.length * 0.28;
+
+      ctx.fillStyle = 'rgba(76,111,255,0.75)';
+      ctx.font = '12px ui-monospace, monospace';
+
+      entries.forEach(([k,v], i) => {
+        const val = Number(v) || 0;
+        const bh = (val / max) * (h - 10);
+        const x = padding + i * (barW + gap) + gap/2;
+        const y = padding + h - bh;
+
+        ctx.fillRect(x, y, barW, bh);
+
+        ctx.fillStyle = 'rgba(232,236,255,0.85)';
+        ctx.fillText(String(val), x, y - 6);
+        ctx.save();
+        ctx.translate(x, padding + h + 14);
+        ctx.rotate(-0.35);
+        ctx.fillText(k, 0, 0);
+        ctx.restore();
+
+        ctx.fillStyle = 'rgba(76,111,255,0.75)';
+      });
+    }
+
+    async function loadAdminStats() {
+      const month = document.getElementById('admin_month').value || '';
+      const out = await api.adminStats(month);
+      const d = out?.data || {};
+
+      document.getElementById('st_total_users').textContent = d.total_users ?? '-';
+      document.getElementById('st_new_users').textContent = d.new_users_in_month ?? '-';
+      document.getElementById('st_bookings_month').textContent = d.bookings_in_month ?? '-';
+      document.getElementById('st_rev_month').textContent = fmtMoney(d.revenue_in_month ?? null);
+      document.getElementById('st_total_venues').textContent = d.total_venues ?? '-';
+      document.getElementById('st_pending_venues').textContent = d.pending_venues ?? '-';
+      document.getElementById('st_approved_venues').textContent = d.approved_venues ?? '-';
+      document.getElementById('st_total_revenue').textContent = fmtMoney(d.total_revenue ?? null);
+      document.getElementById('st_month').textContent = d.month ?? (month || '-');
+
+      drawBarChart('chartStatus', d.bookings_by_status_in_month || {});
+    }
+
+    function renderAdminBookings(items, meta) {
+      const tbody = document.getElementById('ab_rows');
+      tbody.innerHTML = '';
+      items.forEach(b => {
+        const user = b.user || {};
+        const space = b.space || {};
+        const venue = b.venue || {};
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td class="mono">${b.id}</td>
+          <td>${badgeByBookingStatus(b.status)}</td>
+          <td>${escapeHtml(user.name || '-') }<div class="muted mono">${escapeHtml(user.email || '')}</div></td>
+          <td>${fmtDate(b.start_time)} → ${fmtDate(b.end_time)}</td>
+          <td>${escapeHtml(space.name || '-') }<div class="muted">${escapeHtml(venue.name || '')}</div></td>
+          <td class="mono">${fmtMoney(b.total_price)}</td>
+        `;
+        tbody.appendChild(tr);
+      });
+      document.getElementById('ab_meta').textContent = meta ? `Page ${meta.current_page}/${meta.last_page} · total ${meta.total}` : `Items ${items.length}`;
+    }
+
+    async function loadAdminBookings() {
+      const params = {};
+      const status = document.getElementById('ab_status').value.trim();
+      const start_date = document.getElementById('ab_start_date').value;
+      const end_date = document.getElementById('ab_end_date').value;
+      const user_id = document.getElementById('ab_user_id').value.trim();
+      const venue_id = document.getElementById('ab_venue_id').value.trim();
+      const search = document.getElementById('ab_search').value.trim();
+
+      if (status) params.status = status;
+      if (start_date) params.start_date = start_date;
+      if (end_date) params.end_date = end_date;
+      if (user_id) params.user_id = user_id;
+      if (venue_id) params.venue_id = venue_id;
+      if (search) params.search = search;
+
+      const out = await api.adminBookings(params);
+      const { items, meta } = normalizeList(out);
+      renderAdminBookings(items, meta);
+    }
+
+    function renderAdminVenues(items, meta) {
+      const tbody = document.getElementById('av_rows');
+      tbody.innerHTML = '';
+      items.forEach(v => {
+        const st = v.status;
+        const actions = [];
+
+        if (st === 'pending') {
+          actions.push(`<button class="btn btn-sm btn-primary" data-act="approve" data-id="${v.id}">Approve</button>`);
+          actions.push(`<button class="btn btn-sm btn-outline-danger" data-act="reject" data-id="${v.id}">Reject</button>`);
+        } else if (st === 'approved') {
+          actions.push(`<button class="btn btn-sm btn-outline-warning" data-act="block" data-id="${v.id}">Block</button>`);
+        } else if (st === 'blocked') {
+          actions.push(`<button class="btn btn-sm btn-outline-light" data-act="unblock" data-id="${v.id}">Unblock</button>`);
+        }
+
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td class="mono">${v.id}</td>
+          <td>${escapeHtml(v.name || '-')}</td>
+          <td>${escapeHtml(v.city || '-')}</td>
+          <td>${badgeByVenueStatus(st)}</td>
+          <td>${fmtDate(v.created_at)}</td>
+          <td class="text-end d-flex gap-2 justify-content-end">${actions.join('') || '<span class="muted">-</span>'}</td>
+        `;
+        tbody.appendChild(tr);
+      });
+      document.getElementById('av_meta').textContent = meta ? `Page ${meta.current_page}/${meta.last_page} · total ${meta.total}` : `Items ${items.length}`;
+
+      tbody.querySelectorAll('button').forEach(btn => {
+        btn.onclick = async () => {
+          const id = btn.dataset.id;
+          try {
+            if (btn.dataset.act === 'approve') await api.adminApproveVenue(id);
+            if (btn.dataset.act === 'reject')  await api.adminRejectVenue(id);
+            if (btn.dataset.act === 'block')   await api.adminBlockVenue(id);
+            if (btn.dataset.act === 'unblock') await api.adminUnblockVenue(id);
+            toast('Venue updated', 'success');
+            await loadAdminVenues();
+          } catch (e) { toast(e.message, 'error'); }
+        };
+      });
+    }
+
+    async function loadAdminVenues() {
+      const params = {};
+      const st = document.getElementById('av_status').value;
+      if (st) params.status = st;
+      const out = await api.adminVenues(params);
+      const { items, meta } = normalizeList(out);
+      renderAdminVenues(items, meta);
+    }
+
+    function renderAdminPayments(items, meta) {
+      const tbody = document.getElementById('ap_rows');
+      tbody.innerHTML = '';
+      items.forEach(p => {
+        const st = p.transaction_status || p.status || '-';
+        const method = p.payment_method || p.method || '-';
+        const user = p.booking?.user || p.user || {};
+        const venue = p.booking?.space?.venue || p.venue || {};
+
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td class="mono">${p.id ?? '-'}</td>
+          <td class="mono">${p.booking_id ?? p.booking?.id ?? '-'}</td>
+          <td class="mono">${fmtMoney(p.amount)}</td>
+          <td class="mono">${escapeHtml(method)}</td>
+          <td>${badge(st, st === 'success' ? 'success' : (st === 'failed' ? 'danger' : 'warning'))}</td>
+          <td>${fmtDate(p.paid_at)}</td>
+          <td>${escapeHtml(user.name || user.full_name || '-')}</td>
+          <td>${escapeHtml(venue.name || '-')}</td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    async function loadAdminPayments() {
+      const params = {};
+      const status = document.getElementById('ap_status').value.trim();
+      const payment_method = document.getElementById('ap_method').value.trim();
+      const user_id = document.getElementById('ap_user_id').value.trim();
+      const venue_id = document.getElementById('ap_venue_id').value.trim();
+      const space_id = document.getElementById('ap_space_id').value.trim();
+      const month = document.getElementById('admin_month').value || '';
+
+      if (status) params.status = status;
+      if (payment_method) params.payment_method = payment_method;
+      if (user_id) params.user_id = user_id;
+      if (venue_id) params.venue_id = venue_id;
+      if (space_id) params.space_id = space_id;
+      if (month) params.month = month;
+
+      const out = await api.adminPayments(params);
+      const { items, meta } = normalizeList(out);
+      renderAdminPayments(items, meta);
+    }
+
+    // ====== EVENTS / WIRING ======
+    document.getElementById('baseUrl').addEventListener('change', (e) => {
+      setBaseUrl(e.target.value);
+      toast('BASE_URL saved', 'success');
+    });
+
+    document.getElementById('btnLogin').onclick = async () => {
+      try {
+        await api.login(
+          document.getElementById('email').value.trim(),
+          document.getElementById('password').value
+        );
+        toast('Login success', 'success');
+        syncAuthUI();
+        await doSearch();
+      } catch (e) {
+        toast(e.message, 'error');
+      }
+    };
+
+    document.getElementById('btnLogout').onclick = async () => {
+      try { await api.logout(); } catch {}
+      toast('Logged out', 'success');
+      syncAuthUI();
+    };
+
+    document.getElementById('btnMe').onclick = async () => {
+      try {
+        const out = await api.me();
+        const u = out?.data?.user;
+        if (u) setUser(u);
+        toast('Me loaded', 'success');
+        syncAuthUI();
+      } catch (e) { toast(e.message, 'error'); }
+    };
+
+    document.getElementById('btnSearch').onclick = doSearch;
+
+    document.getElementById('btnLoadMyBookings').onclick = loadMyBookings;
+    document.getElementById('btnLoadMyPayments').onclick = loadMyPayments;
+
+    document.getElementById('btnLoadOwnerBookings').onclick = () => loadOwnerBookings();
+    document.getElementById('btnOwnerFilter').onclick = () => loadOwnerBookings();
+
+    document.getElementById('btnAdminRefresh').onclick = async () => {
+      try {
+        await loadAdminStats();
+        if (!document.getElementById('adminBookings').classList.contains('d-none')) await loadAdminBookings();
+        if (!document.getElementById('adminVenues').classList.contains('d-none')) await loadAdminVenues();
+        if (!document.getElementById('adminPayments').classList.contains('d-none')) await loadAdminPayments();
+        toast('Admin refreshed', 'success');
+      } catch (e) { toast(e.message, 'error'); }
+    };
+
+    document.getElementById('btnAdminBookings').onclick = async () => {
+      try { await loadAdminBookings(); toast('Admin bookings loaded', 'success'); } catch(e){ toast(e.message,'error'); }
+    };
+    document.getElementById('btnAdminVenues').onclick = async () => {
+      try { await loadAdminVenues(); toast('Admin venues loaded', 'success'); } catch(e){ toast(e.message,'error'); }
+    };
+    document.getElementById('btnAdminPayments').onclick = async () => {
+      try { await loadAdminPayments(); toast('Admin payments loaded', 'success'); } catch(e){ toast(e.message,'error'); }
+    };
+
+    // Main tabs
+    document.querySelectorAll('#mainTabs .nav-link').forEach(a => {
+      a.onclick = async (e) => {
+        e.preventDefault();
+        const tab = a.dataset.tab;
+        showTab(tab);
+        // lazy load
+        try {
+          if (tab === 'tabPublic') await doSearch();
+          if (tab === 'tabMyBookings') await loadMyBookings();
+          if (tab === 'tabMyPayments') await loadMyPayments();
+          if (tab === 'tabOwner') await loadOwnerBookings();
+          if (tab === 'tabAdmin') {
+            await loadAdminStats();
+            // default admin subtab stays stats
+          }
+        } catch (err) {
+          toast(err.message, 'error');
+        }
+      };
+    });
+
+    // Admin subtabs
+    document.querySelectorAll('#adminTabs .nav-link').forEach(a => {
+      a.onclick = async (e) => {
+        e.preventDefault();
+        const tab = a.dataset.adminTab;
+        showAdminTab(tab);
+        try {
+          if (tab === 'adminStats') await loadAdminStats();
+          if (tab === 'adminBookings') await loadAdminBookings();
+          if (tab === 'adminVenues') await loadAdminVenues();
+          if (tab === 'adminPayments') await loadAdminPayments();
+        } catch (err) { toast(err.message, 'error'); }
+      };
+    });
+
+    // Demo accounts (from doc) :contentReference[oaicite:15]{index=15}
+    document.querySelectorAll('[data-demo]').forEach(a => {
+      a.onclick = (e) => {
+        e.preventDefault();
+        const k = a.dataset.demo;
+        if (k === 'admin') { email.value='admin@workspace.com'; password.value='admin123'; }
+        if (k === 'owner') { email.value='owner@workspace.com'; password.value='password'; }
+        if (k === 'user')  { email.value='user@workspace.com';  password.value='password'; }
+        toast('Filled demo credentials', 'info');
+      };
+    });
+
+    // ====== INIT ======
+    (function init() {
+      syncAuthUI();
+      showTab('tabPublic');
+      showAdminTab('adminStats');
+      doSearch();
+      // if already logged in, refresh /me to sync roles
+      if (getToken()) {
+        api.me().then(out => {
+          const u = out?.data?.user;
+          if (u) setUser(u);
+          syncAuthUI();
+        }).catch(() => {});
+      }
+    })();
+  </script>
+</body>
+</html> 

@@ -12,9 +12,9 @@ class AdminPaymentController extends Controller
 {
     /**
      * List all payments with filters.
-     * 
+     *
      * GET /api/admin/payments
-     * 
+     *
      * Query params:
      * - status: success|failed|pending
      * - method: payment method

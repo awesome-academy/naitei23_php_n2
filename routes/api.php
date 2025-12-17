@@ -131,6 +131,11 @@ Route::middleware('auth:sanctum')->group(function () {
 | Admin Routes (Only Admin)
 |--------------------------------------------------------------------------
 */
+use App\Http\Controllers\Admin\AdminBookingController;
+use App\Http\Controllers\Admin\AdminVenueController;
+use App\Http\Controllers\Admin\AdminPaymentController;
+use App\Http\Controllers\Admin\AdminStatisticsController;
+
 Route::prefix('admin')->middleware(['auth:sanctum', 'role:admin'])->group(function () {
     // User management
     Route::get('/users', [UserController::class, 'index']);
@@ -140,6 +145,23 @@ Route::prefix('admin')->middleware(['auth:sanctum', 'role:admin'])->group(functi
     Route::delete('/users/{id}', [UserController::class, 'destroy']);
     Route::patch('/users/{id}/role', [UserController::class, 'updateRole']);
     Route::patch('/users/{id}/toggle-active', [UserController::class, 'toggleActive']);
+    
+    // Booking management
+    Route::get('/bookings', [AdminBookingController::class, 'index']);
+    Route::get('/bookings/{booking}', [AdminBookingController::class, 'show']);
+    
+    // Venue moderation
+    Route::get('/venues', [AdminVenueController::class, 'index']);
+    Route::patch('/venues/{venue}/approve', [AdminVenueController::class, 'approve']);
+    Route::patch('/venues/{venue}/reject', [AdminVenueController::class, 'reject']);
+    Route::patch('/venues/{venue}/block', [AdminVenueController::class, 'block']);
+    Route::patch('/venues/{venue}/unblock', [AdminVenueController::class, 'unblock']);
+    
+    // Payment management
+    Route::get('/payments', [AdminPaymentController::class, 'index']);
+    
+    // Statistics
+    Route::get('/statistics', [AdminStatisticsController::class, 'index']);
 });
 
 /*

@@ -104,6 +104,7 @@ Route::prefix('auth')->group(function () {
     Route::middleware('auth:sanctum')->group(function () {
         Route::post('/logout', [AuthController::class, 'logout']);
         Route::get('/me', [AuthController::class, 'me']);
+        Route::put('/profile', [AuthController::class, 'updateProfile']);
     });
 });
 
@@ -204,6 +205,7 @@ Route::middleware(['auth:sanctum'])
         Route::delete('services/{service}', [ServiceController::class, 'destroy']);
 
         // Space CRUD
+        Route::get('spaces', [OwnerSpaceController::class, 'allSpaces']); // All owner spaces
         Route::get('venues/{venue}/spaces', [OwnerSpaceController::class, 'index']);
         Route::post('venues/{venue}/spaces', [OwnerSpaceController::class, 'store']);
         Route::get('spaces/{space}', [OwnerSpaceController::class, 'show']);

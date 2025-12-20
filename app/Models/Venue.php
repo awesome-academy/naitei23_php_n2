@@ -78,4 +78,15 @@ class Venue extends Model
     {
         return $this->belongsToMany(User::class, 'venue_managers');
     }
+
+    /**
+     * Scope: lọc venues của owner hoặc venues mà user được assign làm manager
+     */
+    public function scopeForOwnerOrManager($query, $userId)
+    {
+        return $query->where('owner_id', $userId)
+                     ->orWhereHas('managers', function ($q) use ($userId) {
+                         $q->where('user_id', $userId);
+                     });
+    }
 }

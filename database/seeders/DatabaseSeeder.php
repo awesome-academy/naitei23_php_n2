@@ -20,6 +20,7 @@ class DatabaseSeeder extends Seeder
             DemoVenueSeeder::class,
             DemoSpaceSeeder::class,
             ManagerSeeder::class,
+            DemoManagerSeeder::class,
         ]);
     }
 }

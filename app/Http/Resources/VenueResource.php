@@ -30,6 +30,9 @@ class VenueResource extends JsonResource
             // Load relationships if eager loaded
             'spaces'    => SpaceResource::collection($this->whenLoaded('spaces')),
             'amenities' => AmenityResource::collection($this->whenLoaded('amenities')),
+
+            // Aggregate counts (from withCount)
+            'spaces_count' => $this->when(isset($this->spaces_count), $this->spaces_count),
         ];
     }
 }

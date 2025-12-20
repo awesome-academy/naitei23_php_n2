@@ -19,7 +19,8 @@ class VenueController extends Controller
     {
         $user = $request->user();
 
-        $venues = Venue::where('owner_id', $user->id)
+        $venues = Venue::forOwnerOrManager($user->id)
+            ->withCount('spaces')
             ->orderByDesc('created_at')
             ->paginate(10);
 

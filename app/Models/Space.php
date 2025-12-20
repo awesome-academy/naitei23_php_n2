@@ -83,7 +83,7 @@ class Space extends Model
     /**
      * Scope to filter spaces available between given time range.
      * Excludes spaces with confirmed/paid bookings that overlap.
-     * 
+     *
      * @param \Illuminate\Database\Eloquent\Builder $query
      * @param \Carbon\Carbon $start
      * @param \Carbon\Carbon $end
@@ -100,6 +100,19 @@ class Space extends Model
                 $q2->where('start_time', '<', $end)
                    ->where('end_time', '>', $start);
             });
+        });
+    }
+
+    /**
+     * Scope: lọc spaces thuộc venues của owner hoặc venues mà user là manager
+     */
+    public function scopeForOwnerOrManager($query, $userId)
+    {
+        return $query->whereHas('venue', function ($q) use ($userId) {
+            $q->where('owner_id', $userId)
+              ->orWhereHas('managers', function ($q2) use ($userId) {
+                  $q2->where('user_id', $userId);
+              });
         });
     }
 }

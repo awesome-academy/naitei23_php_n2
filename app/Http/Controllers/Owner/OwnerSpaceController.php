@@ -10,6 +10,23 @@ use Illuminate\Http\Request;
 class OwnerSpaceController extends Controller
 {
     /**
+     * Display all spaces owned by the authenticated user.
+     */
+    public function allSpaces(Request $request)
+    {
+        $user = $request->user();
+
+        $spaces = Space::forOwnerOrManager($user->id)
+            ->with(['venue', 'spaceType', 'amenities'])
+            ->paginate(10);
+
+        return response()->json([
+            'success' => true,
+            'data' => $spaces,
+        ]);
+    }
+
+    /**
      * Display a listing of spaces for a venue.
      */
     public function index(Request $request, Venue $venue)

@@ -33,6 +33,11 @@ php artisan serve
 - Quản lý spaces, confirm/reject bookings
 - Ủy quyền managers
 
+**Manager (Quick Demo):** manager@workspace.com / password  
+- Quản lý venues được giao
+- Xem bookings pending
+- Xem spaces (read-only)
+
 **Manager 1:** manager1@workspace.com / password  
 - Được ủy quyền quản lý Venue #1, #3
 

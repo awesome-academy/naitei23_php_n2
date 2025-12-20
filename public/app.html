@@ -1151,17 +1151,56 @@
     function renderMyPayments(items) {
       const tbody = document.getElementById('myPaymentRows');
       tbody.innerHTML = '';
+
+      // Empty state with helpful message
+      if (items.length === 0) {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td colspan="6" class="text-center py-5">
+            <div class="muted mb-3">
+              <div class="h5 mb-2">No payments yet</div>
+              <div>You haven't made any payments. To create a payment:</div>
+              <ol class="text-start d-inline-block mt-2 muted" style="max-width: 500px;">
+                <li>Go to <strong>Public Search</strong> tab and find a space</li>
+                <li>Click <strong>Book</strong> to create a booking</li>
+                <li>Go to <strong>My Bookings</strong> tab</li>
+                <li>Click <strong>Pay</strong> on a confirmed booking</li>
+              </ol>
+            </div>
+            <div class="d-flex gap-2 justify-content-center mt-3">
+              <button class="btn btn-primary" onclick="document.querySelector('[data-tab=tabPublic]').click()">
+                Go to Public Search
+              </button>
+              <button class="btn btn-outline-light" onclick="document.querySelector('[data-tab=tabMyBookings]').click()">
+                Go to My Bookings
+              </button>
+            </div>
+          </td>
+        `;
+        tbody.appendChild(tr);
+        return;
+      }
+
       items.forEach(p => {
         const st = p.transaction_status || p.status || '-';
         const method = p.payment_method || p.method || '-';
+
+        // Payment method badge with icon
+        const methodBadge = {
+          'bank_transfer': '<span class="badge bg-primary">🏦 Bank Transfer</span>',
+          'momo': '<span class="badge" style="background:#a50064;">💳 MoMo</span>',
+          'vnpay': '<span class="badge" style="background:#0066da;">💳 VNPay</span>',
+          'cash': '<span class="badge bg-success">💵 Cash</span>',
+        }[method] || `<span class="badge bg-secondary">${escapeHtml(method)}</span>`;
+
         const tr = document.createElement('tr');
         tr.innerHTML = `
           <td class="mono">${p.id ?? '-'}</td>
           <td class="mono">${p.booking_id ?? p.booking?.id ?? '-'}</td>
-          <td class="mono">${fmtMoney(p.amount)}</td>
-          <td class="mono">${escapeHtml(method)}</td>
+          <td class="mono text-end fw-semibold">${fmtMoney(p.amount)}</td>
+          <td>${methodBadge}</td>
           <td>${badge(st, st === 'success' ? 'success' : (st === 'failed' ? 'danger' : 'warning'))}</td>
-          <td>${fmtDate(p.paid_at)}</td>
+          <td class="muted">${fmtDate(p.paid_at || p.created_at)}</td>
         `;
         tbody.appendChild(tr);
       });

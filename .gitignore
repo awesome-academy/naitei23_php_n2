@@ -21,3 +21,6 @@ POSTMAN_GUIDE.md
 /postman
 /*.md
 demo.sh
+/test.html
+ngrok.log
+ngrok

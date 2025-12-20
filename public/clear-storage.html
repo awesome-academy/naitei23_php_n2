@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html>
+<head><title>Clear Storage</title></head>
+<body style="background:#1a1a2e;color:#eee;font-family:monospace;padding:2rem;">
+<h2>🧹 Clear LocalStorage</h2>
+<button onclick="clearAll()" style="padding:1rem 2rem;font-size:1.2rem;cursor:pointer;">
+  Clear All Storage & Go to Login
+</button>
+<pre id="log" style="margin-top:2rem;background:#0a0a1a;padding:1rem;"></pre>
+<script>
+function clearAll() {
+  const log = document.getElementById('log');
+  log.textContent = 'Before clear:\n';
+  log.textContent += 'workspace_token: ' + (localStorage.getItem('workspace_token') || 'null') + '\n';
+  log.textContent += 'workspace_user: ' + (localStorage.getItem('workspace_user') || 'null') + '\n\n';
+  
+  localStorage.removeItem('workspace_token');
+  localStorage.removeItem('workspace_user');
+  localStorage.removeItem('workspace_base_url');
+  localStorage.clear();
+  
+  log.textContent += 'After clear:\n';
+  log.textContent += 'workspace_token: ' + (localStorage.getItem('workspace_token') || 'null') + '\n';
+  log.textContent += 'All cleared! Redirecting to /login in 2 seconds...\n';
+  
+  setTimeout(() => {
+    window.location.replace('/login');
+  }, 2000);
+}
+</script>
+</body>
+</html>

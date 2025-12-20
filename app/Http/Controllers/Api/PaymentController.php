@@ -49,7 +49,7 @@ class PaymentController extends Controller
         $payments = $this->paymentService->listForUser(auth()->id());
 
         return response()->json([
-            'payments' => $payments,
+            'data' => $payments,
         ]);
     }
 }

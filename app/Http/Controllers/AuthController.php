@@ -239,10 +239,38 @@ class AuthController extends Controller
     }
 
     /**
+     * Update authenticated user profile
+     *
+     * @param Request $request
+     * @return JsonResponse
+     */
+    public function updateProfile(Request $request): JsonResponse
+    {
+        $user = $request->user();
+
+        $validated = $request->validate([
+            'full_name' => 'sometimes|required|string|max:255',
+            'phone_number' => 'nullable|string|max:20',
+        ]);
+
+        $user->update($validated);
+        $user->load('roles');
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Profile updated successfully',
+            'data' => [
+                'user' => $this->formatUserResponse($user),
+            ],
+        ], 200);
+    }
+
+    /**
      * Generate a random password
      *
      * @param int $length
      * @return string
+     * @internal
      */
     private function generateRandomPassword(int $length = 12): string
     {
